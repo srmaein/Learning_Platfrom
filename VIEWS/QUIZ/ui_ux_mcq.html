@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UI UX Design MCQ Quiz</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #f8fafc;
+            --text-color: #334155;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --success-color: #22c55e;
+            --error-color: #ef4444;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f1f5f9;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 30px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px var(--shadow-color);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        header h1 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            color: #64748b;
+        }
+        
+        .quiz-info {
+            display: flex;
+            justify-content: space-between;
+            background-color: var(--secondary-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+        
+        .quiz-info div {
+            display: flex;
+            align-items: center;
+        }
+        
+        .quiz-info i {
+            margin-right: 8px;
+            color: var(--primary-color);
+        }
+        
+        .question-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .question {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+        
+        .options {
+            list-style-type: none;
+        }
+        
+        .option {
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            background-color: var(--secondary-color);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .option:hover {
+            background-color: #e2e8f0;
+        }
+        
+        .option.selected {
+            background-color: #cbd5e1;
+        }
+        
+        .option.correct {
+            background-color: #dcfce7;
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .option.incorrect {
+            background-color: #fee2e2;
+            border-left: 4px solid var(--error-color);
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        button {
+            padding: 12px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+        
+        button:hover {
+            background-color: #4f46e5;
+        }
+        
+        button:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+        }
+        
+        .results {
+            text-align: center;
+            padding: 20px;
+            background-color: var(--secondary-color);
+            border-radius: 8px;
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .results h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        
+        .score {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        
+        .result-actions {
+            margin-top: 20px;
+        }
+        
+        .feedback {
+            font-size: 0.9rem;
+            margin-top: 10px;
+            font-style: italic;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 20px 10px;
+            }
+            
+            .quiz-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Learn UI UX with ZHF Design Studio</h1>
+            <p>Test your knowledge with these 20 multiple choice questions</p>
+        </header>
+        
+        <div class="quiz-info">
+            <div>
+                <i class="fas fa-question-circle"></i>
+                <span>20 Questions</span>
+            </div>
+            <div>
+                <i class="fas fa-clock"></i>
+                <span>Time: <span id="time">30:00</span></span>
+            </div>
+            <div>
+                <i class="fas fa-trophy"></i>
+                <span>Pass mark: 70%</span>
+            </div>
+        </div>
+        
+        <div id="quiz-container">
+            <!-- Questions will be injected here from JavaScript -->
+        </div>
+        
+        <div class="controls">
+            <button id="prev-btn" disabled>Previous</button>
+            <button id="next-btn">Next</button>
+            <button id="submit-btn" style="display: none;">Submit Quiz</button>
+        </div>
+        
+        <div class="results" id="results">
+            <h2>Quiz Results</h2>
+            <p>You've completed the UI UX Design quiz!</p>
+            <div class="score">
+                <span id="score">0</span>/20
+            </div>
+            <div id="percentage">0%</div>
+            <div id="feedback" class="feedback"></div>
+            <div class="result-actions">
+                <button id="review-btn">Review Answers</button>
+                <button id="restart-btn">Retake Quiz</button>
+                <button id="restart-btn" onclick="window.location.href='../../MODELS/quizes.html'">Back to Quizzes</button>
+                <button id="restart-btn" onclick="window.location.href='../../MODELS/index.html'">Back to Dashboard</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Quiz data
+            const quizData = [
+                {
+                    question: "What does UI stand for?",
+                    options: [
+                        "User Interface",
+                        "User Interaction",
+                        "Universal Interface",
+                        "User Implementation"
+                    ],
+                    answer: 0
+                },
+                {
+                    question: "What does UX stand for?",
+                    options: [
+                        "User Expansion",
+                        "User Experience",
+                        "Universal Experience",
+                        "User Examination"
+                    ],
+                    answer: 1
+                },
+                {
+                    question: "Which of the following is NOT a principle of user-centered design?",
+                    options: [
+                        "Focus on user needs",
+                        "Gather user feedback",
+                        "Maximize technical complexity",
+                        "Create iterative designs"
+                    ],
+                    answer: 2
+                },
+                {
+                    question: "What is a wireframe in UI design?",
+                    options: [
+                        "A 3D model of the application",
+                        "A simplified visual guide representing the skeleton of a website/app",
+                        "A finalized version of the design with all colors and graphics",
+                        "A security framework for user data"
+                    ],
+                    answer: 1
+                },
+                {
+                    question: "Which of the following best describes the concept of 'affordance' in UX design?",
+                    options: [
+                        "The cost of implementing a design",
+                        "The quality that indicates how to use an object",
+                        "The emotional response a design creates",
+                        "The speed at which users can navigate an interface"
+                    ],
+                    answer: 1
+                },
+                {
+                    question: "What is a persona in UX design?",
+                    options: [
+                        "A fictional character representing a user type",
+                        "The designer's personal brand",
+                        "A type of design software",
+                        "A specific layout pattern"
+                    ],
+                    answer: 0
+                },
+                {
+                    question: "Which color model is primarily used for digital design?",
+                    options: [
+                        "CMYK",
+                        "RGB",
+                        "HSL",
+                        "Pantone"
+                    ],
+                    answer: 1
+                },
+                {
+                    question: "What is the purpose of a prototype in UI/UX design?",
+                    options: [
+                        "To develop the back-end functionality",
+                        "To test and validate design concepts before development",
+                        "To replace the need for a final product",
+                        "To document the technical requirements"
+                    ],
+                    answer: 1
+                },
+                {
+                    question: "Which law states that the time required to make a decision increases logarithmically with the number of choices?",
+                    options: [
+                        "Fitts's Law",
+                        "Hick's Law",
+                        "Miller's Law",
+                        "Jakob's Law"
+                    ],
+                    answer: 1
+                },
+                {
+                    question: "What is a 'pain point' in UX design?",
+                    options: [
+                        "A specific problem a user encounters",
+                        "A design element that causes eye strain",
+                        "A technical limitation in the software",
+                        "The point where users typically abandon a process"
+                    ],
+                    answer: 0
+                },
+                {
+                    question: "What is the principle of 'accessibility' in UI/UX design?",
+                    options: [
+                        "Making products affordable for everyone",
+                        "Designing products that are usable by people with disabilities",
+                        "Ensuring a product is available in multiple languages",
+                        "Creating designs that load quickly on all devices"
+                    ],
+                    answer: 1
+                },
+                {
+                    question: "What is the purpose of a card sorting exercise in UX research?",
+                    options: [
+                        "To test visual hierarchy of design elements",
+                        "To organize and structure content in a way that makes sense to users",
+                        "To determine pricing strategies",
+                        "To identify the best color schemes"
+                    ],
+                    answer: 1
+                },
+                {
+                    question: "Which of the following is an example of a gestalt principle?",
+                    options: [
+                        "Responsive design",
+                        "Typography hierarchy",
+                        "Proximity",
+                        "Material design"
+                    ],
+                    answer: 2
+                },
+                {
+                    question: "What is a 'call to action' (CTA) in UI design?",
+                    options: [
+                        "An emergency contact link",
+                        "A prompt encouraging users to take a specific action",
+                        "A method for contacting support",
+                        "A form of animation"
+                    ],
+                    answer: 1
+                },
+                {
+                    question: "Which term describes the practice of viewing and testing a product through the eyes of a first-time user?",
+                    options: [
+                        "First impression testing",
+                        "Beginner's mindset",
+                        "Onboarding experience",
+                        "User journey mapping"
+                    ],
+                    answer: 1
+                },
+                {
+                    question: "What is the purpose of white space (negative space) in UI design?",
+                    options: [
+                        "To save on printing costs",
+                        "To create balance and improve readability",
+                        "To simplify the programmer's workload",
+                        "To reduce website loading time"
+                    ],
+                    answer: 1
+                },
+                {
+                    question: "What does 'responsive design' refer to?",
+                    options: [
+                        "Interfaces that respond to user emotions",
+                        "Design that adapts to different screen sizes and devices",
+                        "Animations that respond to user clicks",
+                        "Systems that respond quickly to user input"
+                    ],
+                    answer: 1
+                },
+                {
+                    question: "Which of the following is NOT a common UX deliverable?",
+                    options: [
+                        "User flow diagram",
+                        "Wireframe",
+                        "Server configuration",
+                        "Usability test report"
+                    ],
+                    answer: 2
+                },
+                {
+                    question: "What is A/B testing in UX design?",
+                    options: [
+                        "Testing alphabetical navigation systems",
+                        "Comparing two versions of a design to see which performs better",
+                        "Testing backwards compatibility",
+                        "Evaluating designs on both Android and iOS"
+                    ],
+                    answer: 1
+                },
+                {
+                    question: "Which principle states that users spend most of their time on other websites, so they prefer your site to work similarly to all the others?",
+                    options: [
+                        "Jakob's Law",
+                        "Miller's Law",
+                        "Parkinson's Law",
+                        "Fitts's Law"
+                    ],
+                    answer: 0
+                }
+            ];
+            
+            let currentQuestion = 0;
+            let score = 0;
+            let userAnswers = new Array(quizData.length).fill(null);
+            let quizSubmitted = false;
+            
+            const quizContainer = document.getElementById('quiz-container');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const submitBtn = document.getElementById('submit-btn');
+            
+            // Timer functionality
+            let timeLeft = 30 * 60; // 30 minutes in seconds
+            const timerElement = document.getElementById('time');
+            let timerInterval;
+            
+            function startTimer() {
+                timerInterval = setInterval(function() {
+                    if (timeLeft <= 0 || quizSubmitted) {
+                        clearInterval(timerInterval);
+                        if (!quizSubmitted) submitQuiz();
+                        return;
+                    }
+                    
+                    timeLeft--;
+                    const minutes = Math.floor(timeLeft / 60);
+                    const seconds = timeLeft % 60;
+                    timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }, 1000);
+            }
+            
+            function loadQuestion() {
+                const question = quizData[currentQuestion];
+                
+                let questionHTML = `
+                    <div class="question-container">
+                        <div class="question">
+                            ${currentQuestion + 1}. ${question.question}
+                        </div>
+                        <ul class="options">
+                `;
+                
+                question.options.forEach((option, index) => {
+                    let selectedClass = userAnswers[currentQuestion] === index ? 'selected' : '';
+                    let correctClass = '';
+                    let incorrectClass = '';
+                    
+                    if (quizSubmitted) {
+                        if (index === question.answer) {
+                            correctClass = 'correct';
+                        } else if (userAnswers[currentQuestion] === index) {
+                            incorrectClass = 'incorrect';
+                        }
+                    }
+                    
+                    questionHTML += `
+                        <li class="option ${selectedClass} ${correctClass} ${incorrectClass}" data-index="${index}">
+                            ${String.fromCharCode(65 + index)}. ${option}
+                        </li>
+                    `;
+                });
+                
+                questionHTML += `
+                        </ul>
+                    </div>
+                `;
+                
+                quizContainer.innerHTML = questionHTML;
+                
+                // Add event listeners to options
+                if (!quizSubmitted) {
+                    document.querySelectorAll('.option').forEach(option => {
+                        option.addEventListener('click', selectOption);
+                    });
+                }
+                
+                // Update buttons
+                updateButtons();
+            }
+            
+            function selectOption(e) {
+                const selectedIndex = parseInt(e.target.dataset.index);
+                userAnswers[currentQuestion] = selectedIndex;
+                
+                document.querySelectorAll('.option').forEach(option => {
+                    option.classList.remove('selected');
+                });
+                
+                e.target.classList.add('selected');
+            }
+            
+            function updateButtons() {
+                prevBtn.disabled = currentQuestion === 0;
+                
+                if (currentQuestion === quizData.length - 1) {
+                    nextBtn.style.display = 'none';
+                    submitBtn.style.display = 'block';
+                } else {
+                    nextBtn.style.display = 'block';
+                    submitBtn.style.display = 'none';
+                }
+            }
+            
+            function nextQuestion() {
+                if (currentQuestion < quizData.length - 1) {
+                    currentQuestion++;
+                    loadQuestion();
+                }
+            }
+            
+            function prevQuestion() {
+                if (currentQuestion > 0) {
+                    currentQuestion--;
+                    loadQuestion();
+                }
+            }
+            
+            function submitQuiz() {
+                quizSubmitted = true;
+                clearInterval(timerInterval);
+                
+                // Calculate score
+                score = 0;
+                userAnswers.forEach((answer, index) => {
+                    if (answer === quizData[index].answer) {
+                        score++;
+                    }
+                });
+                
+                // Display results
+                document.getElementById('score').textContent = score;
+                const percentage = Math.round((score / quizData.length) * 100);
+                document.getElementById('percentage').textContent = `${percentage}%`;
+                
+                const feedback = document.getElementById('feedback');
+                feedback.style.display = 'block';
+                
+                if (percentage >= 90) {
+                    feedback.textContent = "Excellent! You have a comprehensive understanding of UI/UX design.";
+                    feedback.style.color = "#047857";
+                } else if (percentage >= 70) {
+                    feedback.textContent = "Good job! You have a solid grasp of UI/UX design principles.";
+                    feedback.style.color = "#0369a1";
+                } else if (percentage >= 50) {
+                    feedback.textContent = "You're on the right track, but there's room for improvement.";
+                    feedback.style.color = "#ca8a04";
+                } else {
+                    feedback.textContent = "You might need to review the fundamentals of UI/UX design.";
+                    feedback.style.color = "#dc2626";
+                }
+                
+                document.getElementById('results').style.display = 'block';
+                
+                // Disable navigation buttons
+                nextBtn.disabled = true;
+                prevBtn.disabled = true;
+                submitBtn.disabled = true;
+                
+                // Show correct and incorrect answers
+                loadQuestion();
+            }
+            
+            // Event Listeners
+            nextBtn.addEventListener('click', nextQuestion);
+            prevBtn.addEventListener('click', prevQuestion);
+            submitBtn.addEventListener('click', submitQuiz);
+            
+            document.getElementById('review-btn').addEventListener('click', function() {
+                document.getElementById('results').style.display = 'none';
+                currentQuestion = 0;
+                loadQuestion();
+            });
+            
+            document.getElementById('restart-btn').addEventListener('click', function() {
+                // Reset quiz
+                currentQuestion = 0;
+                userAnswers = new Array(quizData.length).fill(null);
+                quizSubmitted = false;
+                timeLeft = 30 * 60;
+                
+                // Hide results
+                document.getElementById('results').style.display = 'none';
+                
+                // Enable buttons
+                nextBtn.disabled = false;
+                submitBtn.disabled = false;
+                
+                // Restart timer
+                startTimer();
+                
+                // Load first question
+                loadQuestion();
+            });
+            
+            // Initialize quiz
+            loadQuestion();
+            startTimer();
+        });
+    </script>
+</body>
+</html> 

@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Structure Expert - Making Things Look 3D MCQ Quiz</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #8b5cf6;
+            --secondary-color: #f8fafc;
+            --text-color: #334155;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --success-color: #22c55e;
+            --error-color: #ef4444;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f1f5f9;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 30px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px var(--shadow-color);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        header h1 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            color: #64748b;
+        }
+        
+        .quiz-info {
+            display: flex;
+            justify-content: space-between;
+            background-color: var(--secondary-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+        
+        .quiz-info div {
+            display: flex;
+            align-items: center;
+        }
+        
+        .quiz-info i {
+            margin-right: 8px;
+            color: var(--primary-color);
+        }
+        
+        .question-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .question {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+        
+        .options {
+            list-style-type: none;
+        }
+        
+        .option {
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            background-color: var(--secondary-color);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .option:hover {
+            background-color: #e2e8f0;
+        }
+        
+        .option.selected {
+            background-color: #cbd5e1;
+        }
+        
+        .option.correct {
+            background-color: #dcfce7;
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .option.incorrect {
+            background-color: #fee2e2;
+            border-left: 4px solid var(--error-color);
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        button {
+            padding: 12px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+        
+        button:hover {
+            background-color: #7c3aed;
+        }
+        
+        button:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+        }
+        
+        .results {
+            text-align: center;
+            padding: 20px;
+            background-color: var(--secondary-color);
+            border-radius: 8px;
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .results h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        
+        .score {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        
+        .result-actions {
+            margin-top: 20px;
+        }
+        
+        .feedback {
+            font-size: 0.9rem;
+            margin-top: 10px;
+            font-style: italic;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 20px 10px;
+            }
+            
+            .quiz-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Structure Expert - Making Things Look 3D</h1>
+            <p>Test your knowledge with these 20 multiple choice questions</p>
+        </header>
+        
+        <div class="quiz-info">
+            <div>
+                <i class="fas fa-question-circle"></i>
+                <span>20 Questions</span>
+            </div>
+            <div>
+                <i class="fas fa-clock"></i>
+                <span>Time: <span id="time">30:00</span></span>
+            </div>
+            <div>
+                <i class="fas fa-trophy"></i>
+                <span>Pass mark: 70%</span>
+            </div>
+        </div>
+        
+        <div id="quiz-container">
+            <!-- Questions will be injected here from JavaScript -->
+        </div>
+        
+        <div class="controls">
+            <button id="prev-btn" disabled>Previous</button>
+            <button id="next-btn">Next</button>
+            <button id="submit-btn" style="display: none;">Submit Quiz</button>
+        </div>
+        
+        <div class="results" id="results">
+            <h2>Quiz Results</h2>
+            <p>You've completed the Structure Expert - Making Things Look 3D quiz!</p>
+            <div class="score">
+                <span id="score">0</span>/20
+            </div>
+            <div id="percentage">0%</div>
+            <div id="feedback" class="feedback"></div>
+            <div class="result-actions">
+                <button id="review-btn">Review Answers</button>
+                <button id="restart-btn">Retake Quiz</button>
+                <button id="restart-btn" onclick="window.location.href='../../MODELS/quizes.html'">Back to Quizzes</button>
+                <button id="restart-btn" onclick="window.location.href='../../MODELS/index.html'">Back to Dashboard</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Quiz data
+            const quizData = [
+                {
+                    question: "What is the primary purpose of 3D modeling?",
+                    options: [
+                        "To create 2D images",
+                        "To represent objects with three-dimensional data",
+                        "To program video games",
+                        "To design websites"
+                    ],
+                    answer: 1
+                },
+                {
+                    question: "Which of the following is NOT a common 3D modeling software?",
+                    options: [
+                        "Blender",
+                        "Photoshop",
+                        "Maya",
+                        "3ds Max"
+                    ],
+                    answer: 1
+                },
+                {
+                    question: "What does 'topology' refer to in 3D modeling?",
+                    options: [
+                        "The color of a 3D model",
+                        "The way polygons flow and connect on a 3D model",
+                        "The weight of a 3D model",
+                        "The rendering speed of a 3D model"
+                    ],
+                    answer: 1
+                },
+                {
+                    question: "What is a polygon in 3D modeling?",
+                    options: [
+                        "A type of texture",
+                        "A rendering technique",
+                        "A shape made of vertices, edges, and faces",
+                        "A lighting effect"
+                    ],
+                    answer: 2
+                },
+                {
+                    question: "What is 'rigging' in 3D animation?",
+                    options: [
+                        "Adding textures to a model",
+                        "Creating a skeleton structure for animation",
+                        "Optimizing the model for rendering",
+                        "Adding special effects"
+                    ],
+                    answer: 1
+                },
+                {
+                    question: "Which technique is used to make a surface appear detailed without adding geometry?",
+                    options: [
+                        "Bump mapping",
+                        "Subdivision",
+                        "Extrusion",
+                        "Boolean operations"
+                    ],
+                    answer: 0
+                },
+                {
+                    question: "What is 'ambient occlusion' in 3D rendering?",
+                    options: [
+                        "A lighting technique that simulates soft shadows in creases and corners",
+                        "A method to make objects transparent",
+                        "A way to create particle effects",
+                        "A technique to animate characters"
+                    ],
+                    answer: 0
+                },
+                {
+                    question: "What does 'UV mapping' refer to?",
+                    options: [
+                        "A type of 3D camera movement",
+                        "The process of creating ultraviolet light effects",
+                        "Projecting a 2D image onto a 3D model's surface",
+                        "A rendering algorithm"
+                    ],
+                    answer: 2
+                },
+                {
+                    question: "Which of these is NOT a primitive 3D shape?",
+                    options: [
+                        "Cube",
+                        "Sphere",
+                        "Cylinder",
+                        "Pattern"
+                    ],
+                    answer: 3
+                },
+                {
+                    question: "What is a 'normal map' used for in 3D modeling?",
+                    options: [
+                        "To indicate the standard workflow",
+                        "To create the illusion of detail without adding polygons",
+                        "To normalize the rendering time",
+                        "To correct texture distortions"
+                    ],
+                    answer: 1
+                },
+                {
+                    question: "What does 'PBR' stand for in 3D rendering?",
+                    options: [
+                        "Polygon-Based Rendering",
+                        "Physically Based Rendering",
+                        "Procedural Bevel Reduction",
+                        "Pixel-Based Resolution"
+                    ],
+                    answer: 1
+                },
+                {
+                    question: "What is 'subdivision surface' modeling?",
+                    options: [
+                        "Creating models using only flat surfaces",
+                        "A technique that divides polygons to create smoother surfaces",
+                        "Dividing the workspace into sections",
+                        "Using mathematical formulas to create shapes"
+                    ],
+                    answer: 1
+                },
+                {
+                    question: "Which lighting technique simulates how light bounces off surfaces and affects other surfaces?",
+                    options: [
+                        "Direct lighting",
+                        "Spot lighting",
+                        "Global illumination",
+                        "Point lighting"
+                    ],
+                    answer: 2
+                },
+                {
+                    question: "What is 'beveling' in 3D modeling?",
+                    options: [
+                        "Adding rounded edges to sharp corners",
+                        "Making objects transparent",
+                        "Reducing the polygon count",
+                        "Adding textures to models"
+                    ],
+                    answer: 0
+                },
+                {
+                    question: "What is a 'wireframe' view in 3D software?",
+                    options: [
+                        "A view that shows only the edges of polygons",
+                        "A rendering style that produces artistic results",
+                        "A way to view the internal structure of solid objects",
+                        "A method to display transparent objects"
+                    ],
+                    answer: 0
+                },
+                {
+                    question: "What is 'extrusion' in 3D modeling?",
+                    options: [
+                        "A rendering technique",
+                        "A method of creating depth by extending a 2D shape",
+                        "A way to reduce file size",
+                        "A type of 3D camera movement"
+                    ],
+                    answer: 1
+                },
+                {
+                    question: "Which term describes the process of creating an illusion of depth on a flat surface?",
+                    options: [
+                        "Perspective",
+                        "Topology",
+                        "Resolution",
+                        "Dynamics"
+                    ],
+                    answer: 0
+                },
+                {
+                    question: "What is a 'specular map' used for in 3D texturing?",
+                    options: [
+                        "To control how shiny or reflective a surface appears",
+                        "To add detailed textures to a model",
+                        "To define transparent areas",
+                        "To add extra geometry"
+                    ],
+                    answer: 0
+                },
+                {
+                    question: "Which of the following is a key principle in creating convincing 3D forms?",
+                    options: [
+                        "Using only straight lines",
+                        "Understanding light and shadow",
+                        "Using only primary colors",
+                        "Avoiding texture maps"
+                    ],
+                    answer: 1
+                },
+                {
+                    question: "What is 'parallax mapping' in 3D rendering?",
+                    options: [
+                        "A technique for creating and animating particle effects",
+                        "A method to simulate depth by shifting a texture based on viewing angle",
+                        "A way to optimize model geometry",
+                        "A lighting technique"
+                    ],
+                    answer: 1
+                }
+            ];
+            
+            let currentQuestion = 0;
+            let score = 0;
+            let userAnswers = new Array(quizData.length).fill(null);
+            let quizSubmitted = false;
+            
+            const quizContainer = document.getElementById('quiz-container');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const submitBtn = document.getElementById('submit-btn');
+            
+            // Timer functionality
+            let timeLeft = 30 * 60; // 30 minutes in seconds
+            const timerElement = document.getElementById('time');
+            let timerInterval;
+            
+            function startTimer() {
+                timerInterval = setInterval(function() {
+                    if (timeLeft <= 0 || quizSubmitted) {
+                        clearInterval(timerInterval);
+                        if (!quizSubmitted) submitQuiz();
+                        return;
+                    }
+                    
+                    timeLeft--;
+                    const minutes = Math.floor(timeLeft / 60);
+                    const seconds = timeLeft % 60;
+                    timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }, 1000);
+            }
+            
+            function loadQuestion() {
+                const question = quizData[currentQuestion];
+                
+                let questionHTML = `
+                    <div class="question-container">
+                        <div class="question">
+                            ${currentQuestion + 1}. ${question.question}
+                        </div>
+                        <ul class="options">
+                `;
+                
+                question.options.forEach((option, index) => {
+                    let selectedClass = userAnswers[currentQuestion] === index ? 'selected' : '';
+                    let correctClass = '';
+                    let incorrectClass = '';
+                    
+                    if (quizSubmitted) {
+                        if (index === question.answer) {
+                            correctClass = 'correct';
+                        } else if (userAnswers[currentQuestion] === index) {
+                            incorrectClass = 'incorrect';
+                        }
+                    }
+                    
+                    questionHTML += `
+                        <li class="option ${selectedClass} ${correctClass} ${incorrectClass}" data-index="${index}">
+                            ${String.fromCharCode(65 + index)}. ${option}
+                        </li>
+                    `;
+                });
+                
+                questionHTML += `
+                        </ul>
+                    </div>
+                `;
+                
+                quizContainer.innerHTML = questionHTML;
+                
+                // Add event listeners to options
+                if (!quizSubmitted) {
+                    document.querySelectorAll('.option').forEach(option => {
+                        option.addEventListener('click', selectOption);
+                    });
+                }
+                
+                // Update buttons
+                updateButtons();
+            }
+            
+            function selectOption(e) {
+                const selectedIndex = parseInt(e.target.dataset.index);
+                userAnswers[currentQuestion] = selectedIndex;
+                
+                document.querySelectorAll('.option').forEach(option => {
+                    option.classList.remove('selected');
+                });
+                
+                e.target.classList.add('selected');
+            }
+            
+            function updateButtons() {
+                prevBtn.disabled = currentQuestion === 0;
+                
+                if (currentQuestion === quizData.length - 1) {
+                    nextBtn.style.display = 'none';
+                    submitBtn.style.display = 'block';
+                } else {
+                    nextBtn.style.display = 'block';
+                    submitBtn.style.display = 'none';
+                }
+            }
+            
+            function nextQuestion() {
+                if (currentQuestion < quizData.length - 1) {
+                    currentQuestion++;
+                    loadQuestion();
+                }
+            }
+            
+            function prevQuestion() {
+                if (currentQuestion > 0) {
+                    currentQuestion--;
+                    loadQuestion();
+                }
+            }
+            
+            function submitQuiz() {
+                quizSubmitted = true;
+                clearInterval(timerInterval);
+                
+                // Calculate score
+                score = 0;
+                userAnswers.forEach((answer, index) => {
+                    if (answer === quizData[index].answer) {
+                        score++;
+                    }
+                });
+                
+                // Display results
+                document.getElementById('score').textContent = score;
+                const percentage = Math.round((score / quizData.length) * 100);
+                document.getElementById('percentage').textContent = `${percentage}%`;
+                
+                const feedback = document.getElementById('feedback');
+                feedback.style.display = 'block';
+                
+                if (percentage >= 90) {
+                    feedback.textContent = "Excellent! You have a comprehensive understanding of 3D modeling and structure concepts.";
+                    feedback.style.color = "#047857";
+                } else if (percentage >= 70) {
+                    feedback.textContent = "Good job! You have a solid grasp of 3D modeling fundamentals.";
+                    feedback.style.color = "#0369a1";
+                } else if (percentage >= 50) {
+                    feedback.textContent = "You're on the right track, but there's room to improve your 3D modeling knowledge.";
+                    feedback.style.color = "#ca8a04";
+                } else {
+                    feedback.textContent = "You might need to review the fundamentals of 3D modeling and structure.";
+                    feedback.style.color = "#dc2626";
+                }
+                
+                document.getElementById('results').style.display = 'block';
+                
+                // Disable navigation buttons
+                nextBtn.disabled = true;
+                prevBtn.disabled = true;
+                submitBtn.disabled = true;
+                
+                // Show correct and incorrect answers
+                loadQuestion();
+            }
+            
+            // Event Listeners
+            nextBtn.addEventListener('click', nextQuestion);
+            prevBtn.addEventListener('click', prevQuestion);
+            submitBtn.addEventListener('click', submitQuiz);
+            
+            document.getElementById('review-btn').addEventListener('click', function() {
+                document.getElementById('results').style.display = 'none';
+                currentQuestion = 0;
+                loadQuestion();
+            });
+            
+            document.getElementById('restart-btn').addEventListener('click', function() {
+                // Reset quiz
+                currentQuestion = 0;
+                userAnswers = new Array(quizData.length).fill(null);
+                quizSubmitted = false;
+                timeLeft = 30 * 60;
+                
+                // Hide results
+                document.getElementById('results').style.display = 'none';
+                
+                // Enable buttons
+                nextBtn.disabled = false;
+                submitBtn.disabled = false;
+                
+                // Restart timer
+                startTimer();
+                
+                // Load first question
+                loadQuestion();
+            });
+            
+            // Initialize quiz
+            loadQuestion();
+            startTimer();
+        });
+    </script>
+</body>
+</html> 

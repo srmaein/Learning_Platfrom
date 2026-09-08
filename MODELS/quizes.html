@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Educational Quizzes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4f46e5;
+            --secondary-color: #f8fafc;
+            --text-color: #334155;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f1f5f9;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        header h1 {
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+        
+        .quiz-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+        }
+        
+        .quiz-card {
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px var(--shadow-color);
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .quiz-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card-header {
+            padding: 20px;
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .card-header h2 {
+            font-size: 1.4rem;
+            margin-bottom: 5px;
+        }
+        
+        .card-body {
+            padding: 20px;
+            flex-grow: 1;
+        }
+        
+        .card-body p {
+            margin-bottom: 15px;
+        }
+        
+        .card-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #e2e8f0;
+            background-color: var(--secondary-color);
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 10px 18px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            text-align: center;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+        }
+        
+        .btn:hover {
+            background-color: #4338ca;
+        }
+        
+        .btn-secondary {
+            background-color: #94a3b8;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #64748b;
+        }
+        
+        .navigation {
+            margin-top: 30px;
+            text-align: center;
+        }
+        
+        .navigation .btn {
+            margin: 0 10px;
+        }
+        
+        .quiz-card.ui-ux { --theme-color: #6366f1; }
+        .quiz-card.fullstack { --theme-color: #3b82f6; }
+        .quiz-card.flutter { --theme-color: #0fb9b1; }
+        .quiz-card.structure { --theme-color: #8b5cf6; }
+        .quiz-card.marketing { --theme-color: #f97316; }
+        .quiz-card.graphic { --theme-color: #ec4899; }
+        .quiz-card.programming { --theme-color: #10b981; }
+        .quiz-card.data-science { --theme-color: #2563eb; }
+        .quiz-card.photography { --theme-color: #374151; }
+        
+        .quiz-card.ui-ux .card-header { background-color: #6366f1; }
+        .quiz-card.fullstack .card-header { background-color: #3b82f6; }
+        .quiz-card.flutter .card-header { background-color: #0fb9b1; }
+        .quiz-card.structure .card-header { background-color: #8b5cf6; }
+        .quiz-card.marketing .card-header { background-color: #f97316; }
+        .quiz-card.graphic .card-header { background-color: #ec4899; }
+        .quiz-card.programming .card-header { background-color: #10b981; }
+        .quiz-card.data-science .card-header { background-color: #2563eb; }
+        .quiz-card.photography .card-header { background-color: #374151; }
+        
+        .quiz-card.ui-ux .btn { background-color: #6366f1; }
+        .quiz-card.fullstack .btn { background-color: #3b82f6; }
+        .quiz-card.flutter .btn { background-color: #0fb9b1; }
+        .quiz-card.structure .btn { background-color: #8b5cf6; }
+        .quiz-card.marketing .btn { background-color: #f97316; }
+        .quiz-card.graphic .btn { background-color: #ec4899; }
+        .quiz-card.programming .btn { background-color: #10b981; }
+        .quiz-card.data-science .btn { background-color: #2563eb; }
+        .quiz-card.photography .btn { background-color: #374151; }
+        
+        .quiz-card.ui-ux .btn:hover { background-color: #4f46e5; }
+        .quiz-card.fullstack .btn:hover { background-color: #2563eb; }
+        .quiz-card.flutter .btn:hover { background-color: #0ba59e; }
+        .quiz-card.structure .btn:hover { background-color: #7c3aed; }
+        .quiz-card.marketing .btn:hover { background-color: #ea580c; }
+        .quiz-card.graphic .btn:hover { background-color: #db2777; }
+        .quiz-card.programming .btn:hover { background-color: #059669; }
+        .quiz-card.data-science .btn:hover { background-color: #1d4ed8; }
+        .quiz-card.photography .btn:hover { background-color: #1f2937; }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+                margin: 20px 10px;
+            }
+            
+            .quiz-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 15px;
+            }
+            
+            header h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Educational Quizzes</h1>
+            <p>Choose a quiz to test your knowledge with 20 multiple choice questions</p>
+        </header>
+        
+        <div class="quiz-grid">
+            <!-- UI UX Design -->
+            <div class="quiz-card ui-ux">
+                <div class="card-header">
+                    <h2>UI UX Design</h2>
+                </div>
+                <div class="card-body">
+                    <p>Test your knowledge of user interface and user experience design principles with this comprehensive quiz.</p>
+                    <p><i class="fas fa-clock"></i> 30 min &nbsp; <i class="fas fa-question-circle"></i> 20 Questions</p>
+                </div>
+                <div class="card-footer">
+                    <a href="../VIEWS/QUIZ/ui_ux_mcq.html" class="btn">Start Quiz</a>
+                </div>
+            </div>
+            
+            <!-- Full Stack Development -->
+            <div class="quiz-card fullstack">
+                <div class="card-header">
+                    <h2>Full Stack Development</h2>
+                </div>
+                <div class="card-body">
+                    <p>Challenge yourself with questions covering front-end, back-end, and database concepts in web development.</p>
+                    <p><i class="fas fa-clock"></i> 30 min &nbsp; <i class="fas fa-question-circle"></i> 20 Questions</p>
+                </div>
+                <div class="card-footer">
+                    <a href="../VIEWS/QUIZ/Full Stack Development.html" class="btn">Start Quiz</a>
+                </div>
+            </div>
+            
+            <!-- Flutter Development -->
+            <div class="quiz-card flutter">
+                <div class="card-header">
+                    <h2>Flutter Development</h2>
+                </div>
+                <div class="card-body">
+                    <p>Test your knowledge of Flutter, Dart, and mobile app development concepts in this interactive quiz.</p>
+                    <p><i class="fas fa-clock"></i> 30 min &nbsp; <i class="fas fa-question-circle"></i> 20 Questions</p>
+                </div>
+                <div class="card-footer">
+                    <a href="../VIEWS/QUIZ/flutter_mcq.html" class="btn">Start Quiz</a>
+                </div>
+            </div>
+            
+            <!-- 3D Structure -->
+            <div class="quiz-card structure">
+                <div class="card-header">
+                    <h2>3D Structure Expert</h2>
+                </div>
+                <div class="card-body">
+                    <p>Evaluate your understanding of 3D modeling, structure, and how to make objects look three-dimensional.</p>
+                    <p><i class="fas fa-clock"></i> 30 min &nbsp; <i class="fas fa-question-circle"></i> 20 Questions</p>
+                </div>
+                <div class="card-footer">
+                    <a href="../VIEWS/QUIZ/structure_expert_mcq.html" class="btn">Start Quiz</a>
+                </div>
+            </div>
+            
+            <!-- Digital Marketing -->
+            <div class="quiz-card marketing">
+                <div class="card-header">
+                    <h2>Digital Marketing</h2>
+                </div>
+                <div class="card-body">
+                    <p>Prove your expertise in digital marketing strategies, SEO, social media, and online advertising.</p>
+                    <p><i class="fas fa-clock"></i> 30 min &nbsp; <i class="fas fa-question-circle"></i> 20 Questions</p>
+                </div>
+                <div class="card-footer">
+                    <a href="../VIEWS/QUIZ/digital_marketing_mcq.html" class="btn">Start Quiz</a>
+                </div>
+            </div>
+            
+            <!-- Graphic Design -->
+            <div class="quiz-card graphic">
+                <div class="card-header">
+                    <h2>Graphic Design</h2>
+                </div>
+                <div class="card-body">
+                    <p>Test your knowledge of graphic design theory, principles, color theory, and typography.</p>
+                    <p><i class="fas fa-clock"></i> 30 min &nbsp; <i class="fas fa-question-circle"></i> 20 Questions</p>
+                </div>
+                <div class="card-footer">
+                    <a href="../VIEWS/QUIZ/graphic_design_mcq.html" class="btn">Start Quiz</a>
+                </div>
+            </div>
+            
+            <!-- Programming -->
+            <div class="quiz-card programming">
+                <div class="card-header">
+                    <h2>Programming</h2>
+                </div>
+                <div class="card-body">
+                    <p>Challenge your programming fundamentals with questions covering basic concepts and principles.</p>
+                    <p><i class="fas fa-clock"></i> 30 min &nbsp; <i class="fas fa-question-circle"></i> 20 Questions</p>
+                </div>
+                <div class="card-footer">
+                    <a href="../VIEWS/QUIZ/programming_mcq.html" class="btn">Start Quiz</a>
+                </div>
+            </div>
+            
+            <!-- Data Science -->
+            <div class="quiz-card data-science">
+                <div class="card-header">
+                    <h2>Data Science</h2>
+                </div>
+                <div class="card-body">
+                    <p>Test your knowledge of data science concepts, machine learning, statistics, and analytics.</p>
+                    <p><i class="fas fa-clock"></i> 30 min &nbsp; <i class="fas fa-question-circle"></i> 20 Questions</p>
+                </div>
+                <div class="card-footer">
+                    <a href="../VIEWS/QUIZ/data_science_mcq.html" class="btn">Start Quiz</a>
+                </div>
+            </div>
+            
+            <!-- Photography -->
+            <div class="quiz-card photography">
+                <div class="card-header">
+                    <h2>Photography</h2>
+                </div>
+                <div class="card-body">
+                    <p>Evaluate your understanding of photography concepts, camera settings, composition, and techniques.</p>
+                    <p><i class="fas fa-clock"></i> 30 min &nbsp; <i class="fas fa-question-circle"></i> 20 Questions</p>
+                </div>
+                <div class="card-footer">
+                    <a href="../VIEWS/QUIZ/photography_mcq.html" class="btn">Start Quiz</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="navigation">
+            <a href="index.html" class="btn btn-secondary"><i class="fas fa-home"></i> Back to Dashboard</a>
+        </div>
+    </div>
+
+    <script>
+        // Add event listener to modify all quiz files to add back navigation
+        document.addEventListener('DOMContentLoaded', function() {
+            // This code will run when the page loads
+            // This is just a placeholder as we'll modify the individual quiz files next
+        });
+    </script>
+</body>
+</html> 

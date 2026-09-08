@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Registration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 800px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #444;
+            font-weight: 600;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus {
+            border-color: #667eea;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+
+        .error {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.3s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 20px;
+            }
+        }
+
+        /* Add these new styles for file upload */
+        .file-upload-container {
+            margin-bottom: 25px;
+        }
+
+        .file-upload-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #444;
+            font-weight: 600;
+        }
+
+        .file-upload-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .file-upload-input {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-upload-button {
+            background: #f8f9fa;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 12px 20px;
+            font-size: 16px;
+            color: #444;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: auto;
+            margin-right: 10px;
+        }
+
+        .file-upload-button:hover {
+            background: #e9ecef;
+            border-color: #667eea;
+        }
+
+        .file-name {
+            font-size: 14px;
+            color: #666;
+            margin-left: 10px;
+        }
+
+        .file-list {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .file-list.show {
+            display: block;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px 0;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .file-item:last-child {
+            border-bottom: none;
+        }
+
+        .remove-file {
+            color: #dc3545;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .remove-file:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Teacher Registration</h1>
+        <form id="teacherForm" onsubmit="return validateForm(event)" method="POST" action="../../CONTROLLAR/process/process_teacher_registration.php" enctype="multipart/form-data">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="name">Teacher Name</label>
+                    <input type="text" id="name" name="name">
+                    <div class="error" id="nameError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="age">Age</label>
+                    <input type="number" id="age" name="age">
+                    <div class="error" id="ageError"></div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="dob">Date of Birth</label>
+                    <input type="date" id="dob" name="dob">
+                    <div class="error" id="dobError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="bloodGroup">Blood Group</label>
+                    <select id="bloodGroup" name="bloodGroup">
+                        <option value="">Select Blood Group</option>
+                        <option value="A-">A-</option>
+                        <option value="A+">A+</option>
+                        <option value="B-">B-</option>
+                        <option value="B+">B+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="O-">O-</option>
+                        <option value="O+">O+</option>
+                    </select>
+                    <div class="error" id="bloodGroupError"></div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Phone Number</label>
+                <input type="tel" id="phone" name="phone">
+                <div class="error" id="phoneError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="address">Address</label>
+                <input type="text" id="address" name="address">
+                <div class="error" id="addressError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email">
+                <div class="error" id="emailError"></div>
+            </div>
+
+            <div class="form-group">
+                <label for="qualifications">Qualifications</label>
+                <input type="text" id="qualifications" name="qualifications">
+                <div class="error" id="qualificationsError"></div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="userId">User ID</label>
+                    <input type="text" id="userId" name="userId">
+                    <div class="error" id="userIdError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username">
+                    <div class="error" id="usernameError"></div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password">
+                    <div class="error" id="passwordError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="confirmPassword">Confirm Password</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword">
+                    <div class="error" id="confirmPasswordError"></div>
+                </div>
+            </div>
+
+            <!-- Modify the file upload section to be optional -->
+            <div class="file-upload-container">
+                <label class="file-upload-label">Upload Documents (Optional)</label>
+                <div class="file-upload-wrapper">
+                    <button type="button" class="file-upload-button">Choose Files</button>
+                    <input type="file" class="file-upload-input" id="fileUpload" multiple accept=".pdf,.doc,.docx,.jpg,.jpeg,.png">
+                    <span class="file-name">No files chosen</span>
+                </div>
+                <div class="file-list" id="fileList"></div>
+            </div>
+
+            <button type="submit">Register</button>
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="teacher_view.php" style="color: #667eea; text-decoration: none; font-weight: 600;">View All Teachers</a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        function validateForm(event) {
+            event.preventDefault();
+            let isValid = true;
+
+            // Reset all error messages
+            document.querySelectorAll('.error').forEach(error => error.style.display = 'none');
+
+            // Name validation
+            const name = document.getElementById('name').value.trim();
+            if (name === '') {
+                document.getElementById('nameError').textContent = 'Please enter your name';
+                document.getElementById('nameError').style.display = 'block';
+                isValid = false;
+            }
+
+            // Age validation
+            const age = document.getElementById('age').value;
+            if (age === '' || age < 18 || age > 100) {
+                document.getElementById('ageError').textContent = 'Age must be between 18 and 100';
+                document.getElementById('ageError').style.display = 'block';
+                isValid = false;
+            }
+
+            // Date of Birth validation
+            const dob = document.getElementById('dob').value;
+            if (dob === '') {
+                document.getElementById('dobError').textContent = 'Please select your date of birth';
+                document.getElementById('dobError').style.display = 'block';
+                isValid = false;
+            }
+
+            // Blood Group validation
+            const bloodGroup = document.getElementById('bloodGroup').value;
+            if (bloodGroup === '') {
+                document.getElementById('bloodGroupError').textContent = 'Please select your blood group';
+                document.getElementById('bloodGroupError').style.display = 'block';
+                isValid = false;
+            }
+
+            // Phone validation
+            const phone = document.getElementById('phone').value.trim();
+            if (!/^\d{10}$/.test(phone)) {
+                document.getElementById('phoneError').textContent = 'Please enter a valid 10-digit phone number';
+                document.getElementById('phoneError').style.display = 'block';
+                isValid = false;
+            }
+
+            // Address validation
+            const address = document.getElementById('address').value.trim();
+            if (address === '') {
+                document.getElementById('addressError').textContent = 'Please enter your address';
+                document.getElementById('addressError').style.display = 'block';
+                isValid = false;
+            }
+
+            // Email validation
+            const email = document.getElementById('email').value.trim();
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                document.getElementById('emailError').textContent = 'Please enter a valid email address';
+                document.getElementById('emailError').style.display = 'block';
+                isValid = false;
+            }
+
+            // Qualifications validation
+            const qualifications = document.getElementById('qualifications').value.trim();
+            if (qualifications === '') {
+                document.getElementById('qualificationsError').textContent = 'Please enter your qualifications';
+                document.getElementById('qualificationsError').style.display = 'block';
+                isValid = false;
+            }
+
+            // User ID validation
+            const userId = document.getElementById('userId').value.trim();
+            if (userId === '') {
+                document.getElementById('userIdError').textContent = 'Please enter a user ID';
+                document.getElementById('userIdError').style.display = 'block';
+                isValid = false;
+            }
+
+            // Username validation
+            const username = document.getElementById('username').value.trim();
+            if (username === '') {
+                document.getElementById('usernameError').textContent = 'Please enter a username';
+                document.getElementById('usernameError').style.display = 'block';
+                isValid = false;
+            }
+
+            // Password validation
+            const password = document.getElementById('password').value;
+            if (password.length < 8) {
+                document.getElementById('passwordError').textContent = 'Password must be at least 8 characters long';
+                document.getElementById('passwordError').style.display = 'block';
+                isValid = false;
+            }
+
+            // Confirm Password validation
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            if (password !== confirmPassword) {
+                document.getElementById('confirmPasswordError').textContent = 'Passwords do not match';
+                document.getElementById('confirmPasswordError').style.display = 'block';
+                isValid = false;
+            }
+
+            if (isValid) {
+                // Create FormData object
+                const formData = new FormData(document.getElementById('teacherForm'));
+
+                // Send form data using fetch
+                fetch('../../CONTROLLAR/process/process_teacher_registration.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert(data.message);
+                        document.getElementById('teacherForm').reset();
+                        fileList.innerHTML = '';
+                        fileList.classList.remove('show');
+                        uploadedFiles.clear();
+                        fileName.textContent = 'No files chosen';
+                    } else {
+                        alert(data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred during registration. Please try again.');
+                });
+            }
+
+            return false;
+        }
+
+        // File upload functionality (optional)
+        const fileUpload = document.getElementById('fileUpload');
+        const fileList = document.getElementById('fileList');
+        const fileName = document.querySelector('.file-name');
+        const uploadedFiles = new Set();
+
+        fileUpload.addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            
+            if (files.length > 0) {
+                fileName.textContent = `${files.length} file(s) selected`;
+                fileList.classList.add('show');
+                
+                files.forEach(file => {
+                    if (!uploadedFiles.has(file.name)) {
+                        uploadedFiles.add(file.name);
+                        const fileItem = document.createElement('div');
+                        fileItem.className = 'file-item';
+                        fileItem.innerHTML = `
+                            <span>${file.name}</span>
+                            <span class="remove-file" onclick="removeFile('${file.name}')">Remove</span>
+                        `;
+                        fileList.appendChild(fileItem);
+                    }
+                });
+            } else {
+                fileName.textContent = 'No files chosen';
+                fileList.classList.remove('show');
+            }
+        });
+
+        function removeFile(fileName) {
+            uploadedFiles.delete(fileName);
+            const fileItems = fileList.getElementsByClassName('file-item');
+            for (let item of fileItems) {
+                if (item.firstElementChild.textContent === fileName) {
+                    item.remove();
+                }
+            }
+            
+            if (uploadedFiles.size === 0) {
+                fileList.classList.remove('show');
+                document.querySelector('.file-name').textContent = 'No files chosen';
+            } else {
+                document.querySelector('.file-name').textContent = `${uploadedFiles.size} file(s) selected`;
+            }
+        }
+    </script>
+</body>
+</html> 

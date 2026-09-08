@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photography Masterclass MCQ Quiz</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #374151;
+            --secondary-color: #f8fafc;
+            --text-color: #334155;
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --success-color: #22c55e;
+            --error-color: #ef4444;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f1f5f9;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 30px;
+            background-color: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px var(--shadow-color);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        header h1 {
+            color: var(--primary-color);
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+        
+        header p {
+            color: #64748b;
+        }
+        
+        .quiz-info {
+            display: flex;
+            justify-content: space-between;
+            background-color: var(--secondary-color);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+        }
+        
+        .quiz-info div {
+            display: flex;
+            align-items: center;
+        }
+        
+        .quiz-info i {
+            margin-right: 8px;
+            color: var(--primary-color);
+        }
+        
+        .question-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--primary-color);
+        }
+        
+        .question {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+        
+        .options {
+            list-style-type: none;
+        }
+        
+        .option {
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            background-color: var(--secondary-color);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .option:hover {
+            background-color: #e2e8f0;
+        }
+        
+        .option.selected {
+            background-color: #cbd5e1;
+        }
+        
+        .option.correct {
+            background-color: #dcfce7;
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .option.incorrect {
+            background-color: #fee2e2;
+            border-left: 4px solid var(--error-color);
+        }
+        
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+        
+        button {
+            padding: 12px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+        }
+        
+        button:hover {
+            background-color: #1f2937;
+        }
+        
+        button:disabled {
+            background-color: #94a3b8;
+            cursor: not-allowed;
+        }
+        
+        .results {
+            text-align: center;
+            padding: 20px;
+            background-color: var(--secondary-color);
+            border-radius: 8px;
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .results h2 {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        
+        .score {
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        
+        .result-actions {
+            margin-top: 20px;
+        }
+        
+        .feedback {
+            font-size: 0.9rem;
+            margin-top: 10px;
+            font-style: italic;
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 20px 10px;
+            }
+            
+            .quiz-info {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Photography Masterclass</h1>
+            <p>Test your knowledge with these 20 multiple choice questions</p>
+        </header>
+        
+        <div class="quiz-info">
+            <div>
+                <i class="fas fa-question-circle"></i>
+                <span>20 Questions</span>
+            </div>
+            <div>
+                <i class="fas fa-clock"></i>
+                <span>Time: <span id="time">30:00</span></span>
+            </div>
+            <div>
+                <i class="fas fa-trophy"></i>
+                <span>Pass mark: 70%</span>
+            </div>
+        </div>
+        
+        <div id="quiz-container">
+            <!-- Questions will be injected here from JavaScript -->
+        </div>
+        
+        <div class="controls">
+            <button id="prev-btn" disabled>Previous</button>
+            <button id="next-btn">Next</button>
+            <button id="submit-btn" style="display: none;">Submit Quiz</button>
+        </div>
+        
+        <div class="results" id="results">
+            <h2>Quiz Results</h2>
+            <p>You've completed the Photography Masterclass quiz!</p>
+            <div class="score">
+                <span id="score">0</span>/20
+            </div>
+            <div id="percentage">0%</div>
+            <div id="feedback" class="feedback"></div>
+            <div class="result-actions">
+                <button id="review-btn">Review Answers</button>
+                <button id="restart-btn">Retake Quiz</button>
+                <button id="restart-btn" onclick="window.location.href='../../MODELS/quizes.html'">Back to Quizzes</button>
+                <button id="restart-btn" onclick="window.location.href='../../MODELS/index.html'">Back to Dashboard</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Quiz data
+            const quizData = [
+                {
+                    question: "What does the 'f' in f-stop refer to?",
+                    options: [
+                        "Focal length",
+                        "Flash setting",
+                        "Focal ratio",
+                        "Focus point"
+                    ],
+                    answer: 2
+                },
+                {
+                    question: "Which of the following is NOT one of the three main elements of the exposure triangle?",
+                    options: [
+                        "Aperture",
+                        "ISO",
+                        "White balance",
+                        "Shutter speed"
+                    ],
+                    answer: 2
+                },
+                {
+                    question: "What is the 'rule of thirds' in photography?",
+                    options: [
+                        "A guideline suggesting that dividing an image into thirds creates more tension and interest",
+                        "A rule stating that the subject should take up one-third of the frame",
+                        "A principle requiring photos to have three main elements",
+                        "A guideline requiring photographers to use three different angles"
+                    ],
+                    answer: 0
+                },
+                {
+                    question: "What does a higher ISO setting result in?",
+                    options: [
+                        "Reduced depth of field",
+                        "Slower shutter speed",
+                        "More image noise",
+                        "Less image contrast"
+                    ],
+                    answer: 2
+                },
+                {
+                    question: "What is the difference between JPEG and RAW file formats?",
+                    options: [
+                        "JPEG is larger in file size, RAW is smaller",
+                        "JPEG is processed and compressed in-camera, RAW contains unprocessed data",
+                        "JPEG is black and white, RAW is color",
+                        "JPEG is for professional use, RAW is for beginners"
+                    ],
+                    answer: 1
+                },
+                {
+                    question: "What does 'bokeh' refer to in photography?",
+                    options: [
+                        "A specific brand of camera",
+                        "The aesthetic quality of out-of-focus areas",
+                        "A type of lens filter",
+                        "A technique for shooting in low light"
+                    ],
+                    answer: 1
+                },
+                {
+                    question: "What is the 'golden hour' in photography?",
+                    options: [
+                        "The hour immediately after sunrise or before sunset",
+                        "The hour when professional photographers take their best shots",
+                        "12pm when the sun is highest in the sky",
+                        "The time between 3pm and 4pm"
+                    ],
+                    answer: 0
+                },
+                {
+                    question: "What effect does a smaller aperture (higher f-number) have on depth of field?",
+                    options: [
+                        "Increases depth of field (more is in focus)",
+                        "Decreases depth of field (less is in focus)",
+                        "Has no effect on depth of field",
+                        "Only affects image brightness, not focus"
+                    ],
+                    answer: 0
+                },
+                {
+                    question: "What is the purpose of a polarizing filter?",
+                    options: [
+                        "To increase contrast and reduce reflections",
+                        "To protect the lens from scratches",
+                        "To allow for long exposure shots",
+                        "To create a blurry background"
+                    ],
+                    answer: 0
+                },
+                {
+                    question: "What is the focal length of a typical portrait lens?",
+                    options: [
+                        "14-24mm",
+                        "24-35mm",
+                        "85-135mm",
+                        "200-400mm"
+                    ],
+                    answer: 2
+                },
+                {
+                    question: "What does 'HDR' stand for in photography?",
+                    options: [
+                        "High Definition Resolution",
+                        "High Dynamic Range",
+                        "Heightened Detail Rendering",
+                        "Horizontal Display Ratio"
+                    ],
+                    answer: 1
+                },
+                {
+                    question: "What camera setting would be most useful for photographing fast-moving subjects?",
+                    options: [
+                        "Low ISO",
+                        "Slow shutter speed",
+                        "Fast shutter speed",
+                        "Small aperture (high f-number)"
+                    ],
+                    answer: 2
+                },
+                {
+                    question: "What is the primary purpose of a lens hood?",
+                    options: [
+                        "To block rain from hitting the lens",
+                        "To reduce lens flare by blocking stray light",
+                        "To protect the lens from physical damage",
+                        "To add weight to the front of the camera for stability"
+                    ],
+                    answer: 1
+                },
+                {
+                    question: "Which of these would cause a photograph to be overexposed?",
+                    options: [
+                        "Shutter speed too fast",
+                        "ISO too low",
+                        "Aperture too small (high f-number)",
+                        "Shutter speed too slow"
+                    ],
+                    answer: 3
+                },
+                {
+                    question: "What is the purpose of white balance in photography?",
+                    options: [
+                        "To ensure that white objects appear white in the photo",
+                        "To balance the brightness of the image",
+                        "To enhance white objects in the frame",
+                        "To prevent overexposure of bright areas"
+                    ],
+                    answer: 0
+                },
+                {
+                    question: "What does the term 'prime lens' refer to?",
+                    options: [
+                        "The main lens in a collection",
+                        "A lens with fixed focal length (cannot zoom)",
+                        "The most expensive lens for a camera",
+                        "A lens made by the same manufacturer as the camera"
+                    ],
+                    answer: 1
+                },
+                {
+                    question: "What is 'chromatic aberration' in photography?",
+                    options: [
+                        "A special effect filter",
+                        "The camera's color processing mode",
+                        "Color fringing at high-contrast edges caused by lens imperfections",
+                        "A technique to enhance color in post-processing"
+                    ],
+                    answer: 2
+                },
+                {
+                    question: "What does 'macro photography' primarily focus on?",
+                    options: [
+                        "Landscape shots",
+                        "Close-up photography of small subjects",
+                        "Architectural photography",
+                        "Wildlife photography"
+                    ],
+                    answer: 1
+                },
+                {
+                    question: "What is the 'inverse square law' in relation to photography lighting?",
+                    options: [
+                        "The closer a light source is to the subject, the more intense it appears",
+                        "Light intensity decreases proportionally to the square of the distance",
+                        "The focal length should be the inverse of the shutter speed",
+                        "Two light sources should be placed at inverse angles"
+                    ],
+                    answer: 1
+                },
+                {
+                    question: "Which metering mode measures light in a small area at the center of the frame?",
+                    options: [
+                        "Spot metering",
+                        "Matrix metering",
+                        "Center-weighted metering",
+                        "Evaluative metering"
+                    ],
+                    answer: 0
+                }
+            ];
+            
+            let currentQuestion = 0;
+            let score = 0;
+            let userAnswers = new Array(quizData.length).fill(null);
+            let quizSubmitted = false;
+            
+            const quizContainer = document.getElementById('quiz-container');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const submitBtn = document.getElementById('submit-btn');
+            
+            // Timer functionality
+            let timeLeft = 30 * 60; // 30 minutes in seconds
+            const timerElement = document.getElementById('time');
+            let timerInterval;
+            
+            function startTimer() {
+                timerInterval = setInterval(function() {
+                    if (timeLeft <= 0 || quizSubmitted) {
+                        clearInterval(timerInterval);
+                        if (!quizSubmitted) submitQuiz();
+                        return;
+                    }
+                    
+                    timeLeft--;
+                    const minutes = Math.floor(timeLeft / 60);
+                    const seconds = timeLeft % 60;
+                    timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                }, 1000);
+            }
+            
+            function loadQuestion() {
+                const question = quizData[currentQuestion];
+                
+                let questionHTML = `
+                    <div class="question-container">
+                        <div class="question">
+                            ${currentQuestion + 1}. ${question.question}
+                        </div>
+                        <ul class="options">
+                `;
+                
+                question.options.forEach((option, index) => {
+                    let selectedClass = userAnswers[currentQuestion] === index ? 'selected' : '';
+                    let correctClass = '';
+                    let incorrectClass = '';
+                    
+                    if (quizSubmitted) {
+                        if (index === question.answer) {
+                            correctClass = 'correct';
+                        } else if (userAnswers[currentQuestion] === index) {
+                            incorrectClass = 'incorrect';
+                        }
+                    }
+                    
+                    questionHTML += `
+                        <li class="option ${selectedClass} ${correctClass} ${incorrectClass}" data-index="${index}">
+                            ${String.fromCharCode(65 + index)}. ${option}
+                        </li>
+                    `;
+                });
+                
+                questionHTML += `
+                        </ul>
+                    </div>
+                `;
+                
+                quizContainer.innerHTML = questionHTML;
+                
+                // Add event listeners to options
+                if (!quizSubmitted) {
+                    document.querySelectorAll('.option').forEach(option => {
+                        option.addEventListener('click', selectOption);
+                    });
+                }
+                
+                // Update buttons
+                updateButtons();
+            }
+            
+            function selectOption(e) {
+                const selectedIndex = parseInt(e.target.dataset.index);
+                userAnswers[currentQuestion] = selectedIndex;
+                
+                document.querySelectorAll('.option').forEach(option => {
+                    option.classList.remove('selected');
+                });
+                
+                e.target.classList.add('selected');
+            }
+            
+            function updateButtons() {
+                prevBtn.disabled = currentQuestion === 0;
+                
+                if (currentQuestion === quizData.length - 1) {
+                    nextBtn.style.display = 'none';
+                    submitBtn.style.display = 'block';
+                } else {
+                    nextBtn.style.display = 'block';
+                    submitBtn.style.display = 'none';
+                }
+            }
+            
+            function nextQuestion() {
+                if (currentQuestion < quizData.length - 1) {
+                    currentQuestion++;
+                    loadQuestion();
+                }
+            }
+            
+            function prevQuestion() {
+                if (currentQuestion > 0) {
+                    currentQuestion--;
+                    loadQuestion();
+                }
+            }
+            
+            function submitQuiz() {
+                quizSubmitted = true;
+                clearInterval(timerInterval);
+                
+                // Calculate score
+                score = 0;
+                userAnswers.forEach((answer, index) => {
+                    if (answer === quizData[index].answer) {
+                        score++;
+                    }
+                });
+                
+                // Display results
+                document.getElementById('score').textContent = score;
+                const percentage = Math.round((score / quizData.length) * 100);
+                document.getElementById('percentage').textContent = `${percentage}%`;
+                
+                const feedback = document.getElementById('feedback');
+                feedback.style.display = 'block';
+                
+                if (percentage >= 90) {
+                    feedback.textContent = "Excellent! You have a comprehensive understanding of photography concepts.";
+                    feedback.style.color = "#047857";
+                } else if (percentage >= 70) {
+                    feedback.textContent = "Good job! You have a solid grasp of photography fundamentals.";
+                    feedback.style.color = "#0369a1";
+                } else if (percentage >= 50) {
+                    feedback.textContent = "You're on the right track, but there's room to improve your photography knowledge.";
+                    feedback.style.color = "#ca8a04";
+                } else {
+                    feedback.textContent = "You might need to review the fundamentals of photography.";
+                    feedback.style.color = "#dc2626";
+                }
+                
+                document.getElementById('results').style.display = 'block';
+                
+                // Disable navigation buttons
+                nextBtn.disabled = true;
+                prevBtn.disabled = true;
+                submitBtn.disabled = true;
+                
+                // Show correct and incorrect answers
+                loadQuestion();
+            }
+            
+            // Event Listeners
+            nextBtn.addEventListener('click', nextQuestion);
+            prevBtn.addEventListener('click', prevQuestion);
+            submitBtn.addEventListener('click', submitQuiz);
+            
+            document.getElementById('review-btn').addEventListener('click', function() {
+                document.getElementById('results').style.display = 'none';
+                currentQuestion = 0;
+                loadQuestion();
+            });
+            
+            document.getElementById('restart-btn').addEventListener('click', function() {
+                // Reset quiz
+                currentQuestion = 0;
+                userAnswers = new Array(quizData.length).fill(null);
+                quizSubmitted = false;
+                timeLeft = 30 * 60;
+                
+                // Hide results
+                document.getElementById('results').style.display = 'none';
+                
+                // Enable buttons
+                nextBtn.disabled = false;
+                submitBtn.disabled = false;
+                
+                // Restart timer
+                startTimer();
+                
+                // Load first question
+                loadQuestion();
+            });
+            
+            // Initialize quiz
+            loadQuestion();
+            startTimer();
+        });
+    </script>
+</body>
+</html> 

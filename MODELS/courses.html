@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Our Courses - Student Learning Platform</title>
+    <link rel="stylesheet" href="../PUBLIC/CSS/styles.css">
+    <link rel="stylesheet" href="../PUBLIC/CSS/header-footer.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #2e7d32;
+            --secondary-color: #e8f5e9;
+            --accent-color: #4caf50;
+            --text-color: #333333;
+            --card-bg: #ffffff;
+            --card-shadow: rgba(0, 0, 0, 0.1);
+            --header-bg: #f9f9f9;
+        }
+        
+        .dark-mode {
+            --primary-color: #81c784;
+            --secondary-color: #1e3a2b;
+            --accent-color: #66bb6a;
+            --text-color: #e0e0e0;
+            --card-bg: #2d2d2d;
+            --card-shadow: rgba(0, 0, 0, 0.3);
+            --header-bg: #222222;
+        }
+        
+        .courses-header {
+            text-align: center;
+            margin: 40px 0;
+            padding: 30px;
+            background-color: var(--header-bg);
+            border-radius: 15px;
+            box-shadow: 0 4px 10px var(--card-shadow);
+        }
+        
+        .courses-header h1 {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+        }
+        
+        .courses-header p {
+            color: var(--text-color);
+            max-width: 700px;
+            margin: 0 auto;
+            font-size: 1.1rem;
+        }
+        
+        .courses-categories {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 30px 0;
+        }
+        
+        .category-btn {
+            padding: 10px 25px;
+            border: 2px solid var(--accent-color);
+            border-radius: 30px;
+            background: transparent;
+            color: var(--text-color);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+        
+        .category-btn.active, .category-btn:hover {
+            background-color: var(--accent-color);
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 10px;
+        }
+        
+        .section-header h2 {
+            color: var(--primary-color);
+            font-size: 1.8rem;
+            position: relative;
+        }
+        
+        .courses-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+            margin-bottom: 50px;
+        }
+        
+        .course-card {
+            background-color: var(--card-bg);
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px var(--card-shadow);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .course-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .course-image {
+            position: relative;
+            height: 200px;
+            overflow: hidden;
+        }
+        
+        .course-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .course-card h3 {
+            padding: 20px 20px 10px;
+            color: var(--primary-color);
+            font-size: 1.25rem;
+            margin: 0;
+            line-height: 1.4;
+        }
+        
+        .course-price {
+            padding: 0 20px 10px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #e64a19;
+            margin: 0;
+        }
+        
+        .course-info {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px 15px;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: center;
+            color: var(--text-color);
+            font-size: 0.9rem;
+        }
+        
+        .info-item i {
+            color: var(--accent-color);
+            margin-right: 5px;
+        }
+        
+        .enroll-button-container {
+            padding: 0 20px 20px;
+            margin-top: auto;
+        }
+        
+        .enroll-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: var(--accent-color);
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .enroll-btn:hover {
+            background-color: var(--primary-color);
+        }
+    </style>
+</head>
+<body class="light-mode">
+    <nav class="navbar">
+        <div class="logo">
+            <img src="../PUBLIC/pic/logo.png" alt="EduLearn" onerror="this.style.display='none'">
+            <span>Online Education Platform</span>
+        </div>
+        <div class="nav-links">
+            <a href="index.html"><i class="fas fa-home"></i> Home</a>
+            <a href="courses.html" class="active"><i class="fas fa-book"></i> Courses</a>
+            <a href="quizes.html"><i class="fas fa-question-circle"></i> Quizzes</a>
+            <a href="../MISC/transaction-history.html"><i class="fas fa-history"></i> Transactions</a>
+        </div>
+        <div class="nav-right">
+            <button id="theme-toggle" aria-label="Toggle dark/light mode">
+                <i class="fas fa-moon"></i>
+            </button>
+            <button class="login-btn" onclick="window.location.href='../VIEWS/auth/logout.php'">
+                <i class="fas fa-sign-in-alt"></i> LOGOUT
+            </button>
+        </div>
+    </nav>
+
+    <main class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+        <div class="courses-header">
+            <h1>Explore Our Courses</h1>
+            <p>Real-time course catalog powered by PostgreSQL single source of truth.</p>
+        </div>
+
+        <section class="active-courses">
+            <div class="section-header">
+                <h2>All Available Courses</h2>
+            </div>
+            <div class="courses-grid" id="coursesGrid">
+                <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p>Loading course catalog...</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('../CONTROLLAR/process/process_course.php?action=get_courses')
+            .then(res => res.json())
+            .then(data => {
+                const grid = document.getElementById('coursesGrid');
+                if (data.status === 'success' && data.data.length > 0) {
+                    grid.innerHTML = data.data.map(c => {
+                        const imgPath = c.thumbnail ? (c.thumbnail.startsWith('PUBLIC/') ? '../' + c.thumbnail : c.thumbnail) : '../PUBLIC/pic/img.jpg';
+                        return `
+                            <div class="course-card">
+                                <div class="course-image">
+                                    <img src="${imgPath}" alt="${escapeHtml(c.title)}" onerror="this.src='../PUBLIC/pic/img.jpg'">
+                                </div>
+                                <h3>${escapeHtml(c.title)}</h3>
+                                <div class="course-price">BDT ${parseFloat(c.price).toFixed(2)}</div>
+                                <div class="course-info">
+                                    <div class="info-item">
+                                        <i class="fas fa-video"></i>
+                                        <span>${c.tutorials_count || 10} Tutorials</span>
+                                    </div>
+                                    <div class="info-item">
+                                        <i class="fas fa-clock"></i>
+                                        <span>${escapeHtml(c.duration || 'Flexible')}</span>
+                                    </div>
+                                </div>
+                                <div class="enroll-button-container">
+                                    ${c.is_enrolled ?
+                                        `<button class="enroll-btn" style="background:#2ecc71;" disabled><i class="fas fa-check"></i> Enrolled</button>` :
+                                        `<a href="../MISC/payment.html?course_id=${c.id}&name=${encodeURIComponent(c.title)}&price=${c.price}" class="enroll-btn">Enroll Now</a>`
+                                    }
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                } else {
+                    grid.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:30px;">No courses published yet.</div>`;
+                }
+            })
+            .catch(err => {
+                document.getElementById('coursesGrid').innerHTML = `<div style="grid-column:1/-1; text-align:center; color:red; padding:30px;">Failed to load courses.</div>`;
+            });
+    });
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        return text.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+    }
+    </script>
+</body>
+</html>

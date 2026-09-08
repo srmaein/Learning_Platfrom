@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Registration Form</title>
+    <style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+
+        background: linear-gradient(135deg, #f2f2f2, #d9e4f5);
+    }
+
+    .main {
+        background-color: #ffffff;
+        border-radius: 40px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        padding: 20px;
+        width: 500px;
+        transition: transform 0.3s ease;
+    }
+
+    .main:hover {
+        transform: scale(1.02);
+    }
+
+    .main h2 {
+        color: #4caf50;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 5px;
+        color: #333;
+        font-weight: bold;
+        transition: color 0.3s;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    select {
+        width: 100%;
+        margin-bottom: 15px;
+        padding: 10px;
+        box-sizing: border-box;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    input[type="text"]:hover,
+    input[type="email"]:hover,
+    input[type="password"]:hover,
+    select:hover {
+        border-color: #4caf50;
+        box-shadow: 0 0 5px rgba(76, 175, 80, 0.5);
+    }
+
+    button[type="submit"] {
+        padding: 15px;
+        border-radius: 10px;
+        border: none;
+        background-color: #4caf50;
+        color: white;
+        cursor: pointer;
+        width: 100%;
+        font-size: 16px;
+        transition: background-color 0.3s, transform 0.3s;
+    }
+
+    button[type="submit"]:hover {
+        background-color: #45a049;
+        transform: scale(1.05);
+    }
+
+    .error {
+        color: red;
+        font-size: 12px;
+        margin-top: -10px;
+        margin-bottom: 10px;
+    }
+
+    input.error-border, select.error-border {
+        border-color: red;
+    }
+</style>
+
+</head>
+
+<body>
+    <div class="main">
+        <h2>Registration Form</h2>
+        <form id="registrationForm" action="../../CONTROLLAR/process/process_student_registration.php" method="POST" onsubmit="return validateForm()">
+            <label for="first">First Name:</label>
+            <input type="text" id="first" name="first"/>
+            <div id="firstError" class="error"></div>
+
+            <label for="last">Last Name:</label>
+            <input type="text" id="last" name="last"/>
+            <div id="lastError" class="error"></div>
+
+            <label for="mobile">Contact:</label>
+            <input type="text" id="mobile" name="mobile" maxlength="11"/>
+            <div id="mobileError" class="error"></div>
+
+            <label for="gender">Gender:</label>
+            <select id="gender" name="gender">
+                <option value=""></option>
+                <option value="male"> Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+            </select>
+            <div id="genderError" class="error"></div>
+
+            <label for="bloodGroup">Blood Group:</label>
+            <select id="blood" name="blood">
+                <option value=""></option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+            </select>
+            <div id="bloodError" class="error"></div>
+
+            <label for="user">User Type:</label>
+            <select name="user" id="user">
+                <option value=""></option>
+                <option value="Student">Student</option>
+            </select>
+            <div id="userError" class="error"></div>
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email"/>
+            <div id="emailError" class="error"></div>
+
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password"/>
+            <div id="passwordError" class="error"></div>
+
+            <label for="confirmpassword">Confirm Password:</label>
+            <input type="password" id="repassword" name="repassword"/>
+            <div id="repasswordError" class="error"></div>
+
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+
+    <script>
+        function validateForm() {
+            // Reset previous errors
+            resetErrors();
+            
+            // Get form values
+            const firstName = document.getElementById('first').value.trim();
+            const lastName = document.getElementById('last').value.trim();
+            const mobile = document.getElementById('mobile').value.trim();
+            const gender = document.getElementById('gender').value;
+            const bloodGroup = document.getElementById('blood').value;
+            const userType = document.getElementById('user').value;
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const repassword = document.getElementById('repassword').value;
+            
+            let isValid = true;
+            
+            // Validate First Name
+            if (firstName === '') {
+                showError('firstError', 'First name is required');
+                document.getElementById('first').classList.add('error-border');
+                isValid = false;
+            } else if (!/^[a-zA-Z]+$/.test(firstName)) {
+                showError('firstError', 'First name should contain only letters');
+                document.getElementById('first').classList.add('error-border');
+                isValid = false;
+            }
+            
+            // Validate Last Name
+            if (lastName === '') {
+                showError('lastError', 'Last name is required');
+                document.getElementById('last').classList.add('error-border');
+                isValid = false;
+            } else if (!/^[a-zA-Z]+$/.test(lastName)) {
+                showError('lastError', 'Last name should contain only letters');
+                document.getElementById('last').classList.add('error-border');
+                isValid = false;
+            }
+            
+            // Validate Mobile
+            if (mobile === '') {
+                showError('mobileError', 'Contact number is required');
+                document.getElementById('mobile').classList.add('error-border');
+                isValid = false;
+            } else if (!/^\d{11}$/.test(mobile)) {
+                showError('mobileError', 'Contact number must be 11 digits');
+                document.getElementById('mobile').classList.add('error-border');
+                isValid = false;
+            }
+            
+            // Validate Gender
+            if (gender === '') {
+                showError('genderError', 'Please select a gender');
+                document.getElementById('gender').classList.add('error-border');
+                isValid = false;
+            }
+            
+            // Validate Blood Group
+            if (bloodGroup === '') {
+                showError('bloodError', 'Please select a blood group');
+                document.getElementById('blood').classList.add('error-border');
+                isValid = false;
+            }
+            
+            // Validate User Type
+            if (userType === '') {
+                showError('userError', 'Please select a user type');
+                document.getElementById('user').classList.add('error-border');
+                isValid = false;
+            }
+            
+            // Validate Email
+            if (email === '') {
+                showError('emailError', 'Email is required');
+                document.getElementById('email').classList.add('error-border');
+                isValid = false;
+            } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                showError('emailError', 'Please enter a valid email address');
+                document.getElementById('email').classList.add('error-border');
+                isValid = false;
+            }
+            
+            // Validate Password
+            if (password === '') {
+                showError('passwordError', 'Password is required');
+                document.getElementById('password').classList.add('error-border');
+                isValid = false;
+            } else if (password.length < 8) {
+                showError('passwordError', 'Password must be at least 8 characters long');
+                document.getElementById('password').classList.add('error-border');
+                isValid = false;
+            }
+            
+            // Validate Confirm Password
+            if (repassword === '') {
+                showError('repasswordError', 'Please confirm your password');
+                document.getElementById('repassword').classList.add('error-border');
+                isValid = false;
+            } else if (password !== repassword) {
+                showError('repasswordError', 'Passwords do not match');
+                document.getElementById('repassword').classList.add('error-border');
+                isValid = false;
+            }
+
+            if (isValid) {
+                // Submit form using fetch
+                const formData = new FormData(document.getElementById('registrationForm'));
+                
+                fetch('../../CONTROLLAR/process/process_student_registration.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        alert('Registration successful!');
+                        window.location.href = '../../login.php';
+                    } else {
+                        showError('emailError', data.message || 'Registration failed. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showError('emailError', 'An error occurred during registration. Please try again.');
+                });
+            }
+            
+            return false; // Prevent form submission
+        }
+
+        function showError(elementId, message) {
+            const errorElement = document.getElementById(elementId);
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+
+        function resetErrors() {
+            const errorElements = document.getElementsByClassName('error');
+            const errorBorders = document.getElementsByClassName('error-border');
+            
+            for (let element of errorElements) {
+                element.textContent = '';
+                element.style.display = 'none';
+            }
+            
+            for (let element of errorBorders) {
+                element.classList.remove('error-border');
+            }
+        }
+        
+        // Real-time validation for mobile number (only allow digits)
+        document.getElementById('mobile').addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Course Payment</title>
+    <link rel="stylesheet" href="../PUBLIC/CSS/style.css">
+    <link rel="stylesheet" href="../PUBLIC/CSS/payment.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="../PUBLIC/JS/payment.js" defer></script>
+</head>
+<body class="light-mode">
+    <div class="payment-container">
+        <div class="payment-header">
+            <h1><i class="fas fa-credit-card"></i> Course Payment</h1>
+            <p class="course-title">Selected Course: <span id="selected-course">Loading...</span></p>
+        </div>
+
+        <div class="payment-card">
+            <form id="payment-form">
+                <div class="form-group">
+                    <label for="course_name">Course Name</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-book"></i>
+                        <input type="text" id="course_name" name="course_name" placeholder="Enter course name" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-envelope"></i>
+                        <input type="email" id="email" name="email" placeholder="Your email address" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="amount">Amount (BDT)</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <input type="number" id="amount" name="amount" placeholder="Enter amount miniumum 50% of Course" min="1" step="1" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Payment Method</label>
+                    <div class="payment-methods">
+                        <div class="payment-method">
+                            <input type="radio" id="bkash" name="payment_method" value="bKash" required>
+                            <label for="bkash" class="method-label">
+                                <img src="../PUBLIC/pic/bkash.png" alt="bKash" class="payment-icon">
+                                <span>bKash</span>
+                            </label>
+                        </div>
+                        
+                        <div class="payment-method">
+                            <input type="radio" id="nagad" name="payment_method" value="Nagad">
+                            <label for="nagad" class="method-label">
+                                <img src="../PUBLIC/pic/nagad.png" alt="Nagad" class="payment-icon">
+                                <span>Nagad</span>
+                            </label>
+                        </div>
+                        
+                        <div class="payment-method">
+                            <input type="radio" id="visa" name="payment_method" value="Visa" onchange="handlePaymentMethod(this)">
+                            <label for="visa" class="method-label">
+                                <img src="../PUBLIC/pic/visa.png" alt="Visa" class="payment-icon">
+                                <span>Visa/MasterCard</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="transaction_id">Transaction ID</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-money-check"></i>
+                        <input type="text" id="transaction_id" name="transaction_id" placeholder="Enter transaction ID" required>
+                    </div>
+                </div>
+
+                <div class="payment-summary">
+                    <div class="summary-row">
+                        <span>Course Price:</span>
+                        <span id="course-price">BDT 0</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Processing Fee:</span>
+                        <span>BDT 0.00</span>
+                    </div>
+                    <div class="summary-row total">
+                        <span>Total:</span>
+                        <span id="total-amount">BDT 0</span>
+                    </div>
+                </div>
+
+                <div class="button-group">
+                    <a href="../MODELS/index.html" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Courses</a>
+                    <button type="submit" class="confirm-btn"><i class="fas fa-check-circle"></i> Confirm Payment</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="payment-footer">
+            <p><i class="fas fa-lock"></i> Your payment information is secure</p>
+            <p><i class="fas fa-shield-alt"></i> 30-day money-back guarantee</p>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div class="modal" id="success-modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h2>Payment Successful!</h2>
+            <p>Your transaction has been processed successfully.</p>
+            <p>Transaction ID: <span id="modal-transaction-id"></span></p>
+            <div class="modal-buttons">
+                <a href="../MISC/transaction-history.html" class="view-history-btn">View Transaction History</a>
+                <a href="../MODELS/index.html" class="continue-btn">Continue Learning</a>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Inline script to ensure amount is properly set -->
+    <script>
+        // Set amount field value immediately when available
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                // Get URL parameters
+                const urlParams = new URLSearchParams(window.location.search);
+                const coursePrice = urlParams.get('price');
+                
+                if (coursePrice) {
+                    console.log("Direct inline price detection:", coursePrice);
+                    
+                    // Set amount field value
+                    const amountField = document.getElementById('amount');
+                    if (amountField) {
+                        amountField.value = coursePrice;
+                        
+                        // Make it readonly
+                        amountField.readOnly = true;
+                        amountField.style.backgroundColor = "#f8f8f8";
+                        
+                        // Update price displays
+                        const coursePriceElement = document.getElementById('course-price');
+                        const totalAmountElement = document.getElementById('total-amount');
+                        
+                        if (coursePriceElement) coursePriceElement.textContent = `BDT ${coursePrice}`;
+                        if (totalAmountElement) totalAmountElement.textContent = `BDT ${coursePrice}`;
+                    } else {
+                        console.error("Amount field not found in the document");
+                    }
+                } else {
+                    console.log("No price parameter found in URL");
+                }
+            } catch (error) {
+                console.error("Error in inline script:", error);
+            }
+        });
+
+        function handlePaymentMethod(radio) {
+            if (radio.value === 'Visa' && radio.checked) {
+                // Get the amount from the amount input field
+                const amount = document.getElementById('amount').value;
+                // Redirect to 3D payment page with amount as parameter
+                window.location.href = `3dpayment.php?amount=${amount}`;
+            }
+        }
+    </script>
+</body>
+</html> 

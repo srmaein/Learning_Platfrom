@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academy Dashboard</title>
+    <link rel="stylesheet" href="../PUBLIC/CSS/teadas.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">
+                    <span class="material-icons">school</span>
+                </div>
+                <span class="logo-text">Academy</span>
+            </div>
+
+            <ul class="nav-menu">
+                <li class="active">
+                    <span class="material-icons">dashboard</span>
+                    Dashboard
+                </li>
+                <li>
+                    <span class="material-icons">menu_book</span>
+                    Courses
+                </li>
+                <li>
+                    <span class="material-icons">chat</span>
+                    Chat
+                </li>
+                <li>
+                    <span class="material-icons">grade</span>
+                    Grades
+                </li>
+                <li>
+                    <span class="material-icons">schedule</span>
+                    Schedule
+                </li>
+                <li>
+                    <span class="material-icons">settings</span>
+                    Settings
+                </li>
+                <li>
+                    <a href="../VIEWS/auth/logout.php" class="nav-link">
+                        <span class="material-icons">logout</span>
+                        Logout
+                    </a>
+                </li>
+            </ul>
+
+            <!-- Add Mode Toggle before premium card -->
+            <div class="mode-toggle">
+                <span class="material-icons mode-icon">dark_mode</span>
+                <span class="mode-text">Dark Mode</span>
+            </div>
+
+            <div class="premium-card">
+                <img src="student.png" alt="Student illustration" class="premium-img">
+                <h3>Get Premium</h3>
+                <p>Buy premium and get access to new courses</p>
+                <button class="subscribe-btn">Subscribe</button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header>
+                <div class="welcome-section">
+                    <h1>Hello Teachear 👋</h1>
+                    <p>Let's learn something new today!</p>
+                </div>
+                <div class="header-right">
+                    <div class="search-bar">
+                        <span class="material-icons">search</span>
+                        <input type="text" placeholder="Search">
+                    </div>
+                    <div class="notification-icon">
+                        <span class="material-icons">notifications</span>
+                    </div>
+                    <div class="profile">
+                        <span class="material-icons">edit</span>
+                        <span>Profile</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Overview Section -->
+            <section class="overview">
+                <h2>Overview</h2>
+                <div class="stats-grid">
+                    <div class="stat-card progress">
+                        <div class="stat-icon">
+                            <span class="material-icons">play_circle</span>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Course in Progress</h3>
+                            <span class="stat-number">18</span>
+                        </div>
+                    </div>
+                    <div class="stat-card completed">
+                        <div class="stat-icon">
+                            <span class="material-icons">check_circle</span>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Course Completed</h3>
+                            <span class="stat-number">23</span>
+                        </div>
+                    </div>
+                    <div class="stat-card certificates">
+                        <div class="stat-icon">
+                            <span class="material-icons">workspace_premium</span>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Certificates Earned</h3>
+                            <span class="stat-number">15</span>
+                        </div>
+                    </div>
+                    <div class="stat-card community">
+                        <div class="stat-icon">
+                            <span class="material-icons">groups</span>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Community Support</h3>
+                            <span class="stat-number">87</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Activity Hours and Performance Section -->
+            <div class="activity-performance-container">
+                <!-- Activity Hours -->
+                <section class="activity-hours">
+                    <div class="section-header">
+                        <h2>Actively Hours</h2>
+                        <select class="period-select">
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                    </div>
+                    <div class="activity-chart">
+                        <canvas id="activityChart"></canvas>
+                    </div>
+                    <div class="activity-stats">
+                        <div class="stat-item">
+                            <span class="stat-label">Time spent</span>
+                            <div class="stat-value">
+                                <span>28</span>
+                                <span class="percentage">86%</span>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Lessons taken</span>
+                            <div class="stat-value">
+                                <span>60</span>
+                                <span class="percentage">75%</span>
+                            </div>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">Exam passed</span>
+                            <div class="stat-value">
+                                <span>10</span>
+                                <span class="percentage">100%</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Performance -->
+                <section class="performance">
+                    <h2>Performance</h2>
+                    <div class="performance-chart">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                    <div class="performance-stats">
+                        <span class="percentage">40%</span>
+                        <p>Your productivity is 40 higher compare to last month</p>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Calendar and Events Section -->
+            <div class="calendar-events-container">
+                <!-- Calendar -->
+                <section class="calendar">
+                    <div class="calendar-header">
+                        <div class="calendar-nav">
+                            <button class="prev-month">
+                                <span class="material-icons">chevron_left</span>
+                            </button>
+                            <h2>February 2023</h2>
+                            <button class="next-month">
+                                <span class="material-icons">chevron_right</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="weekdays">
+                        <span>Sun</span>
+                        <span>Mon</span>
+                        <span>Tue</span>
+                        <span>Wed</span>
+                        <span>Thu</span>
+                        <span>Fri</span>
+                        <span>Sat</span>
+                    </div>
+                    <div class="calendar-grid" id="calendarGrid"></div>
+                </section>
+
+                <!-- Upcoming Events -->
+                <section class="upcoming-events">
+                    <h2>Upcoming Events</h2>
+                    <div class="events-container">
+                        <div class="time-slots">
+                            <div class="time-slot">9:30</div>
+                            <div class="time-slot">10:30</div>
+                            <div class="time-slot">11:30</div>
+                            <div class="time-slot">12:30</div>
+                            <div class="time-slot">13:30</div>
+                        </div>
+                        <div class="events-grid">
+                            <div class="weekday">
+                                <span>Sun</span>
+                            </div>
+                            <div class="weekday">
+                                <span>Mon</span>
+                                <div class="event team-meetup">Team Meetup</div>
+                            </div>
+                            <div class="weekday">
+                                <span>Tue</span>
+                                <div class="event illustration">Illustration</div>
+                            </div>
+                            <div class="weekday">
+                                <span>Wed</span>
+                                <div class="event research">Research</div>
+                            </div>
+                            <div class="weekday">
+                                <span>Thu</span>
+                                <div class="event presentation">Presentation</div>
+                            </div>
+                            <div class="weekday">
+                                <span>Fri</span>
+                            </div>
+                            <div class="weekday">
+                                <span>Sat</span>
+                                <div class="event report">Report</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Assignments Section -->
+            <section class="assignments">
+                <h2>My Assignments</h2>
+                <div class="assignments-table">
+                    <div class="table-header">
+                        <span>TASK</span>
+                        <span>GRADE</span>
+                        <span>UPDATE</span>
+                    </div>
+                    <div class="assignment-item">
+                        <div class="task">
+                            <span class="material-icons">description</span>
+                            <div class="task-info">
+                                <h4>Typography test</h4>
+                                <p>Today, 10:30 AM</p>
+                            </div>
+                        </div>
+                        <div class="grade">190/200</div>
+                        <div class="status completed">Completed</div>
+                    </div>
+                    <div class="assignment-item">
+                        <div class="task">
+                            <span class="material-icons">palette</span>
+                            <div class="task-info">
+                                <h4>Inclusive design test</h4>
+                                <p>Tomorrow, 10:30 AM</p>
+                            </div>
+                        </div>
+                        <div class="grade">160/200</div>
+                        <div class="status completed">Completed</div>
+                    </div>
+                    <div class="assignment-item">
+                        <div class="task">
+                            <span class="material-icons">brush</span>
+                            <div class="task-info">
+                                <h4>Drawing test</h4>
+                                <p>23 Feb, 12:30 PM</p>
+                            </div>
+                        </div>
+                        <div class="grade">--/200</div>
+                        <div class="status upcoming">Upcoming</div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Profile Sidebar -->
+        <aside class="profile-sidebar">
+            <div class="profile-header">
+                <img src="profile.jpg" alt="Meain" class="profile-image">
+                <h3>Meain</h3>
+                <p>Student</p>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Footer Section -->
+    <footer class="dashboard-footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h4>Quick Links</h4>
+                <ul>
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">Courses</a></li>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Contact</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Resources</h4>
+                <ul>
+                    <li><a href="#">Help Center</a></li>
+                    <li><a href="#">Documentation</a></li>
+                    <li><a href="#">Tutorials</a></li>
+                    <li><a href="#">Blog</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Connect With Us</h4>
+                <div class="social-links">
+                    <a href="#"><span class="material-icons">facebook</span></a>
+                    <a href="#"><span class="material-icons">twitter</span></a>
+                    <a href="#"><span class="material-icons">linkedin</span></a>
+                    <a href="#"><span class="material-icons">email</span></a>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 Academy Teacher Dashboard. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../PUBLIC/JS/teadas.js"></script>
+</body>
+</html> 

@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction History - PostgreSQL</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: #f5f5f5; min-height: 100vh; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .header h1 { color: #333; font-size: 24px; }
+        .back-btn { background: #4CAF50; color: white; border: none; padding: 10px 20px; border-radius: 5px; text-decoration: none; font-weight: 600; }
+        .search-container { margin-bottom: 20px; display: flex; gap: 10px; }
+        .search-box { flex: 1; padding: 10px 15px; border: 1px solid #ddd; border-radius: 5px; font-size: 15px; }
+        .transaction-table { width: 100%; background: white; border-radius: 10px; box-shadow: 0 0 20px rgba(0, 0, 0, 0.1); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 15px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
+        th { background: #f8f9fa; font-weight: 600; color: #333; }
+        .status { padding: 4px 10px; border-radius: 15px; font-size: 12px; font-weight: 600; }
+        .status-completed { background: #e8f5e9; color: #2e7d32; }
+        .status-pending { background: #fff3e0; color: #ef6c00; }
+        .status-failed { background: #ffebee; color: #c62828; }
+        .status-cancelled { background: #eeeeee; color: #616161; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-receipt"></i> Transaction History (PostgreSQL Live)</h1>
+            <a href="../MODELS/index.html" class="back-btn"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+        </div>
+
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-box" placeholder="Filter by transaction ID, course name, or email...">
+        </div>
+
+        <div class="transaction-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Transaction ID</th>
+                        <th>Course Name</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Payer Email</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="transactionBody">
+                    <tr><td colspan="7" style="text-align:center; padding:30px;">Loading live transactions from PostgreSQL...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', loadTransactionsFromDatabase);
+
+        function loadTransactionsFromDatabase() {
+            fetch('../DATABASE/get_transactions.php')
+                .then(res => res.json())
+                .then(resData => {
+                    const tbody = document.getElementById('transactionBody');
+                    if (resData.status === 'success' && resData.data.length > 0) {
+                        renderTransactions(resData.data);
+                    } else {
+                        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; padding:30px;">No payment transactions recorded yet.</td></tr>`;
+                    }
+                })
+                .catch(err => {
+                    console.error("Error loading transactions:", err);
+                    document.getElementById('transactionBody').innerHTML = `<tr><td colspan="7" style="text-align:center; color:red; padding:30px;">Failed to load transactions.</td></tr>`;
+                });
+        }
+
+        function renderTransactions(transactions) {
+            const tbody = document.getElementById('transactionBody');
+            tbody.innerHTML = transactions.map(t => {
+                const st = (t.status || 'COMPLETED').toUpperCase();
+                let statusClass = 'status-completed';
+                if (st === 'PENDING') statusClass = 'status-pending';
+                if (st === 'FAILED') statusClass = 'status-failed';
+                if (st === 'CANCELLED') statusClass = 'status-cancelled';
+
+                return `
+                    <tr>
+                        <td><strong>${escapeHtml(t.transaction_id)}</strong></td>
+                        <td>${escapeHtml(t.course_name)}</td>
+                        <td>${escapeHtml(t.amount)}</td>
+                        <td>${escapeHtml(t.payment_method)}</td>
+                        <td>${escapeHtml(t.email)}</td>
+                        <td>${new Date(t.created_at || t.transaction_date).toLocaleString()}</td>
+                        <td><span class="status ${statusClass}">${st}</span></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const term = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#transactionBody tr');
+            rows.forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(term) ? '' : 'none';
+            });
+        });
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+        }
+    </script>
+</body>
+</html>
