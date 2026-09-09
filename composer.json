@@ -3,7 +3,7 @@
     "description": "Production Online Learning Platform on Railway with PostgreSQL",
     "type": "project",
     "require": {
-        "php": ">=7.4",
+        "php": "^8.2",
         "ext-pdo": "*",
         "ext-pdo_pgsql": "*",
         "ext-json": "*",
