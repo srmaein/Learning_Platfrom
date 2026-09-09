@@ -1,0 +1,14 @@
+# Ignore local dev SQLite databases
+*.sqlite
+DATABASE/database.sqlite
+
+# Ignore temporary logs & scratch scripts
+*.log
+.system_generated/
+scratch/
+
+# Ignore OS & IDE generated files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

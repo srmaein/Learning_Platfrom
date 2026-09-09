@@ -1,72 +1,95 @@
 <?php
-require_once '../../DATABASE/db_connection.php';
+require_once __DIR__ . '/../../DATABASE/db_connection.php';
+header('Content-Type: application/json');
 
-if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    try {
-        // Sanitize and validate input
-        $teacher_name = filter_var($_POST['name'], FILTER_SANITIZE_STRING);
-        $age = filter_var($_POST['age'], FILTER_VALIDATE_INT);
-        $date_of_birth = $_POST['dob'];
-        $blood_group = $_POST['bloodGroup'];
-        $phone_number = filter_var($_POST['phone'], FILTER_SANITIZE_STRING);
-        $address = filter_var($_POST['address'], FILTER_SANITIZE_STRING);
-        $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
-        $qualifications = filter_var($_POST['qualifications'], FILTER_SANITIZE_STRING);
-        $user_id = filter_var($_POST['userId'], FILTER_SANITIZE_STRING);
-        $username = filter_var($_POST['username'], FILTER_SANITIZE_STRING);
-        $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
-
-        // Check if email already exists
-        $stmt = $conn->prepare("SELECT COUNT(*) FROM teachers WHERE email = :email");
-        $stmt->bindParam(':email', $email);
-        $stmt->execute();
-        if ($stmt->fetchColumn() > 0) {
-            throw new Exception("Email already registered");
-        }
-
-        // Check if username already exists
-        $stmt = $conn->prepare("SELECT COUNT(*) FROM teachers WHERE username = :username");
-        $stmt->bindParam(':username', $username);
-        $stmt->execute();
-        if ($stmt->fetchColumn() > 0) {
-            throw new Exception("Username already taken");
-        }
-
-        // Check if user_id already exists
-        $stmt = $conn->prepare("SELECT COUNT(*) FROM teachers WHERE user_id = :user_id");
-        $stmt->bindParam(':user_id', $user_id);
-        $stmt->execute();
-        if ($stmt->fetchColumn() > 0) {
-            throw new Exception("User ID already exists");
-        }
-
-        $sql = "INSERT INTO teachers (teacher_name, age, date_of_birth, blood_group, phone_number, address, email, qualifications, user_id, username, password)
-                VALUES (:teacher_name, :age, :date_of_birth, :blood_group, :phone_number, :address, :email, :qualifications, :user_id, :username, :password)";
-
-        $stmt = $conn->prepare($sql);
-        $stmt->bindParam(':teacher_name', $teacher_name);
-        $stmt->bindParam(':age', $age);
-        $stmt->bindParam(':date_of_birth', $date_of_birth);
-        $stmt->bindParam(':blood_group', $blood_group);
-        $stmt->bindParam(':phone_number', $phone_number);
-        $stmt->bindParam(':address', $address);
-        $stmt->bindParam(':email', $email);
-        $stmt->bindParam(':qualifications', $qualifications);
-        $stmt->bindParam(':user_id', $user_id);
-        $stmt->bindParam(':username', $username);
-        $stmt->bindParam(':password', $password);
-
-        $stmt->execute();
-        error_log("Teacher registered successfully: " . $username);
-        echo json_encode(['status' => 'success', 'message' => 'Registration successful! You can now login.']);
-        
-    } catch(Exception $e) {
-        error_log("Teacher registration error: " . $e->getMessage());
-        http_response_code(400);
-        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
-    }
-} else {
+if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     http_response_code(405);
     echo json_encode(['status' => 'error', 'message' => 'Invalid request method']);
+    exit();
+}
+
+try {
+    $teacher_name = trim($_POST['name'] ?? '');
+    $age = filter_var($_POST['age'] ?? 0, FILTER_VALIDATE_INT);
+    $date_of_birth = trim($_POST['dob'] ?? '');
+    $blood_group = trim($_POST['bloodGroup'] ?? '');
+    $phone_number = trim($_POST['phone'] ?? '');
+    $address = trim($_POST['address'] ?? '');
+    $email = filter_var(trim($_POST['email'] ?? ''), FILTER_VALIDATE_EMAIL);
+    $qualifications = trim($_POST['qualifications'] ?? '');
+    $teacher_user_id = trim($_POST['userId'] ?? '');
+    $username = trim($_POST['username'] ?? '');
+    $rawPassword = $_POST['password'] ?? '';
+
+    if (empty($teacher_name) || empty($email) || empty($username) || empty($rawPassword)) {
+        throw new Exception("Missing required fields (Name, Email, Username, or Password)");
+    }
+
+    if (!$email) {
+        throw new Exception("Invalid email format");
+    }
+
+    if (strlen($rawPassword) < 6) {
+        throw new Exception("Password must be at least 6 characters long");
+    }
+
+    $pdo = getPgPDO();
+    $pdo->beginTransaction();
+
+    // Check if email exists
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE email = ?");
+    $stmt->execute([$email]);
+    $emailCount = $stmt->fetchColumn();
+    $stmt->closeCursor();
+
+    if ($emailCount > 0) {
+        throw new Exception("Email already registered");
+    }
+
+    // Check if username exists
+    $stmtUserCheck = $pdo->prepare("SELECT COUNT(*) FROM users WHERE username = ?");
+    $stmtUserCheck->execute([$username]);
+    $userCount = $stmtUserCheck->fetchColumn();
+    $stmtUserCheck->closeCursor();
+
+    if ($userCount > 0) {
+        throw new Exception("Username already taken");
+    }
+
+    $passwordHash = password_hash($rawPassword, PASSWORD_BCRYPT);
+
+    // Insert user record (Cross-database compatible)
+    $stmtUser = $pdo->prepare("INSERT INTO users (email, username, password_hash, role, status) VALUES (?, ?, ?, 'teacher', 'ACTIVE')");
+    $stmtUser->execute([$email, $username, $passwordHash]);
+    $userId = $pdo->lastInsertId();
+    $stmtUser->closeCursor();
+
+    // Split name if possible
+    $parts = explode(' ', $teacher_name, 2);
+    $firstName = $parts[0];
+    $lastName = $parts[1] ?? '';
+
+    // Insert profile record
+    $stmtProfile = $pdo->prepare("INSERT INTO profiles (user_id, first_name, last_name, full_name, age, date_of_birth, blood_group, phone_number, address, qualifications, teacher_user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmtProfile->execute([$userId, $firstName, $lastName, $teacher_name, $age ?: null, $date_of_birth ?: null, $blood_group ?: null, $phone_number, $address, $qualifications, $teacher_user_id ?: null]);
+    $stmtProfile->closeCursor();
+
+    $pdo->commit();
+
+    echo json_encode([
+        'status' => 'success', 
+        'message' => 'Registration successful! You can now login.',
+        'redirect' => '../../login.php'
+    ]);
+    exit();
+
+} catch (Exception $e) {
+    if (isset($pdo) && $pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    error_log("Teacher registration error: " . $e->getMessage());
+    http_response_code(400);
+    echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
+    exit();
 }
 ?>

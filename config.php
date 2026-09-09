@@ -1,67 +1,43 @@
 <?php
-// Prevent multiple inclusions
-if (!defined('ROOT_PATH')) {
-    define('ROOT_PATH', dirname(__FILE__));
-    define('PUBLIC_PATH', ROOT_PATH . '/PUBLIC');
-    define('VIEWS_PATH', ROOT_PATH . '/VIEWS');
-    define('MODELS_PATH', ROOT_PATH . '/MODELS');
-    define('CONTROLLERS_PATH', ROOT_PATH . '/CONTROLLAR');
-    define('DATABASE_PATH', ROOT_PATH . '/DATABASE');
+// Base URL configuration
+define('BASE_URL', '/MVC/');
 
-    // Dynamic Base URL detection for local development and Railway deployment
-    $protocol = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? "https" : "http";
-    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
-    $scriptDir = rtrim(dirname($_SERVER['SCRIPT_NAME'] ?? ''), '/\\');
-    
-    // Determine base URL relative to root
-    $baseUrl = getenv('APP_URL') ?: ($protocol . "://" . $host . '/');
-    if (!str_ends_with($baseUrl, '/')) {
-        $baseUrl .= '/';
-    }
-    
-    define('BASE_URL', $baseUrl);
+// Directory paths
+define('ROOT_PATH', dirname(__FILE__));
+define('PUBLIC_PATH', ROOT_PATH . '/PUBLIC');
+define('VIEWS_PATH', ROOT_PATH . '/VIEWS');
+define('MODELS_PATH', ROOT_PATH . '/MODELS');
+define('CONTROLLERS_PATH', ROOT_PATH . '/CONTROLLAR');
+define('DATABASE_PATH', ROOT_PATH . '/DATABASE');
 
-    // Asset paths
-    define('CSS_PATH', BASE_URL . 'PUBLIC/CSS/');
-    define('JS_PATH', BASE_URL . 'PUBLIC/JS/');
-    define('IMAGES_PATH', BASE_URL . 'PUBLIC/pic/');
+// Asset paths
+define('CSS_PATH', BASE_URL . 'PUBLIC/CSS/');
+define('JS_PATH', BASE_URL . 'PUBLIC/JS/');
+define('IMAGES_PATH', BASE_URL . 'PUBLIC/pic/');
 
-    // Environment mode
-    define('APP_ENV', getenv('APP_ENV') ?: 'production');
-    
-    if (APP_ENV === 'development') {
-        ini_set('display_errors', 1);
-        ini_set('display_startup_errors', 1);
-        error_reporting(E_ALL);
-    } else {
-        ini_set('display_errors', 0);
-        ini_set('display_startup_errors', 0);
-        error_reporting(E_ALL & ~E_NOTICE & ~E_DEPRECATED);
-    }
+// Helper function to get asset URLs
+function asset($path) {
+    return BASE_URL . 'PUBLIC/' . $path;
 }
 
-// Helper functions
-if (!function_exists('asset')) {
-    function asset($path) {
-        return BASE_URL . 'PUBLIC/' . ltrim($path, '/');
-    }
+// Helper function to get view URLs
+function view($path) {
+    return BASE_URL . 'VIEWS/' . $path;
 }
 
-if (!function_exists('view')) {
-    function view($path) {
-        return BASE_URL . 'VIEWS/' . ltrim($path, '/');
-    }
+// Helper function to get model URLs
+function model($path) {
+    return BASE_URL . 'MODELS/' . $path;
 }
 
-if (!function_exists('model')) {
-    function model($path) {
-        return BASE_URL . 'MODELS/' . ltrim($path, '/');
-    }
+// Helper function to get controller URLs
+function controller($path) {
+    return BASE_URL . 'CONTROLLAR/' . $path;
 }
 
-if (!function_exists('controller')) {
-    function controller($path) {
-        return BASE_URL . 'CONTROLLAR/' . ltrim($path, '/');
-    }
-}
-?>
+// Database configuration
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'your_database_name');
+define('DB_USER', 'root');
+define('DB_PASS', '');
+?> 

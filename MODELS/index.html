@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Learning Dashboard</title>
+    <title>Learning Dashboard</title>
     <link rel="stylesheet" href="../PUBLIC/CSS/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="../PUBLIC/JS/student_session.js"></script>
 </head>
 <body class="light-mode">
     <div class="container">
@@ -16,7 +17,7 @@
                 <i class="fas fa-seedling"></i>
             </div>
             <ul class="nav-links">
-                <li class="active"><a href="../MODELS/index.html"><i class="fas fa-home"></i> Home</a></li>
+                <li class="active"><a href="#"><i class="fas fa-home"></i> Home</a></li>
                 <li><a href="../MODELS/courses.html"><i class="fas fa-book"></i> Courses</a></li>
                 <li><a href="../MODELS/quizes.html"><i class="fas fa-graduation-cap"></i> Exam</a></li>
                 <li><a href="#"><i class="fas fa-calendar"></i> Schedule</a></li>
@@ -34,15 +35,15 @@
             <!-- Header -->
             <header>
                 <div class="welcome">
-                    <img src="../PUBLIC/pic/user-avatar.png" alt="Profile" class="profile-img">
+                    <img src="https://via.placeholder.com/40" alt="Profile" class="profile-img">
                     <div class="welcome-text">
                         <span>Welcome</span>
-                        <h2 id="studentDisplayName">Student</h2>
+                        <h2>Student</h2>
                     </div>
                 </div>
                 <div class="search-bar">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="courseSearchInput" placeholder="Search courses, exam here...">
+                    <input type="text" placeholder="Search courses, exam here...">
                 </div>
                 <div class="header-icons">
                     <i class="fas fa-comment-dots"></i>
@@ -56,13 +57,93 @@
             <!-- Active Courses -->
             <section class="active-courses">
                 <div class="section-header">
-                    <h2>Active Courses (Live from Database)</h2>
-                    <a href="../MODELS/courses.html" class="see-all">See All</a>
+                    <h2>Active Courses</h2>
+                    <a href="#" class="see-all">See All</a>
                 </div>
-                <div class="courses-grid" id="coursesGridContainer">
-                    <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #666;">
-                        <i class="fas fa-spinner fa-spin fa-2x"></i>
-                        <p>Loading real courses from database...</p>
+                <div class="courses-grid">
+                    <!-- UI/UX Course -->
+                    <div class="course-card">
+                        <div class="course-image">
+                            <img src="../PUBLIC/pic/Learn UI UX with ZHF Design Studio.png" alt="UI/UX Course">
+                        </div>
+                        <h3>Learn UI UX with ZHF Design Studio</h3>
+                        <div class="course-info">
+                            <div class="info-item">
+                                <i class="fas fa-video"></i>
+                                <span>35 Tutorials</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-clock"></i>
+                                <span>08:30 hours/Daily</span>
+                            </div>
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress">
+                                <div class="progress-bar" style="width: 65%"></div>
+                            </div>
+                            <span class="progress-text">65%</span>
+                        </div>
+                        <p class="next-class">Next class starting in 30 mins</p>
+                        <div class="enroll-button-container">
+                            <a href="../MISC/payment.html" class="enroll-btn">Enroll</a>
+                        </div>
+                    </div>
+
+                    <!-- 3D Design Course -->
+                    <div class="course-card">
+                        <div class="course-image">
+                            <img src="../PUBLIC/pic/Structure Expert - Making Things Look 3D.jpg" alt="3D Design Course">
+                        </div>
+                        <h3>Structure Expert - Making Things Look 3D</h3>
+                        <div class="course-info">
+                            <div class="info-item">
+                                <i class="fas fa-video"></i>
+                                <span>120 Tutorials</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-clock"></i>
+                                <span>08:00 hours/Daily</span>
+                            </div>
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress">
+                                <div class="progress-bar" style="width: 30%"></div>
+                            </div>
+                            <span class="progress-text">30%</span>
+                        </div>
+                        <p class="next-class">Next class starting in 01:44 hour</p>
+                        <div class="enroll-button-container">
+                            <a href="payment.html" class="enroll-btn">Enroll</a>
+                        </div>
+                    </div>
+
+
+                    <!-- Programming Course -->
+                    <div class="course-card">
+                        <div class="course-image">
+                            <img src="../PUBLIC/pic/Learn Programming FAST! My Favorite Method.jpg" alt="Programming Course">
+                        </div>
+                        <h3>Learn Programming FAST! My Favorite Method!</h3>
+                        <div class="course-info">
+                            <div class="info-item">
+                                <i class="fas fa-video"></i>
+                                <span>55 Tutorials</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-clock"></i>
+                                <span>03:40 hours/Daily</span>
+                            </div>
+                        </div>
+                        <div class="progress-container">
+                            <div class="progress">
+                                <div class="progress-bar" style="width: 88%"></div>
+                            </div>
+                            <span class="progress-text">88%</span>
+                        </div>
+                        <p class="next-class">Next class starting in 22:24 hours</p>
+                        <div class="enroll-button-container">
+                            <a href="../MISC/payment.html" class="enroll-btn">Enroll</a>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -91,17 +172,17 @@
             <!-- Statistics -->
             <section class="statistics">
                 <div class="stats-card">
-                    <h3>Total Available Courses</h3>
+                    <h3>Total Courses</h3>
                     <div class="stat-value">
-                        <span id="statCourseCount">0</span>
-                        <i class="fas fa-book-open"></i>
+                        <span>100+</span>
+                        <i class="fas fa-books"></i>
                     </div>
                 </div>
                 <div class="stats-card">
-                    <h3>Enrolled Courses</h3>
+                    <h3>Hours Spent</h3>
                     <div class="stat-value">
-                        <span id="statEnrolledCount">0</span>
-                        <i class="fas fa-user-graduate"></i>
+                        <span>245+</span>
+                        <i class="fas fa-clock"></i>
                     </div>
                 </div>
             </section>
@@ -130,100 +211,6 @@
             </section>
         </main>
     </div>
-
     <script src="../PUBLIC/JS/script.js"></script>
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Session verification
-        fetch('../VIEWS/auth/check_session.php?check_session=1')
-            .then(res => res.json())
-            .then(data => {
-                if (data.valid) {
-                    if (data.name) {
-                        document.getElementById('studentDisplayName').textContent = data.name;
-                    }
-                }
-            })
-            .catch(err => console.error("Session check error:", err));
-
-        // Load live courses from PostgreSQL database
-        loadDatabaseCourses();
-
-        document.getElementById('courseSearchInput').addEventListener('input', function(e) {
-            const query = e.target.value.toLowerCase();
-            const cards = document.querySelectorAll('.course-card');
-            cards.forEach(card => {
-                const title = card.querySelector('h3').textContent.toLowerCase();
-                card.style.display = title.includes(query) ? 'block' : 'none';
-            });
-        });
-    });
-
-    function loadDatabaseCourses() {
-        const container = document.getElementById('coursesGridContainer');
-        fetch('../CONTROLLAR/process/process_course.php?action=get_courses')
-            .then(res => res.json())
-            .then(resData => {
-                if (resData.status === 'success' && resData.data.length > 0) {
-                    const courses = resData.data;
-                    document.getElementById('statCourseCount').textContent = courses.length;
-                    
-                    let enrolledCount = 0;
-                    container.innerHTML = courses.map(c => {
-                        if (c.is_enrolled) enrolledCount++;
-                        const imgPath = c.thumbnail ? (c.thumbnail.startsWith('PUBLIC/') ? '../' + c.thumbnail : c.thumbnail) : '../PUBLIC/pic/img.jpg';
-                        const progress = c.user_progress || 0;
-
-                        return `
-                            <div class="course-card" data-id="${c.id}">
-                                <div class="course-image">
-                                    <img src="${imgPath}" alt="${escapeHtml(c.title)}" onerror="this.src='../PUBLIC/pic/img.jpg'">
-                                </div>
-                                <h3>${escapeHtml(c.title)}</h3>
-                                <p style="font-size:12px; color:#666; margin-bottom:10px;">${escapeHtml(c.description || '').substring(0, 80)}...</p>
-                                <div class="course-info">
-                                    <div class="info-item">
-                                        <i class="fas fa-video"></i>
-                                        <span>${c.tutorials_count || 10} Tutorials</span>
-                                    </div>
-                                    <div class="info-item">
-                                        <i class="fas fa-tag"></i>
-                                        <span>BDT ${parseFloat(c.price).toFixed(2)}</span>
-                                    </div>
-                                </div>
-                                <div class="progress-container">
-                                    <div class="progress">
-                                        <div class="progress-bar" style="width: ${progress}%"></div>
-                                    </div>
-                                    <span class="progress-text">${progress}%</span>
-                                </div>
-                                <div class="enroll-button-container" style="margin-top:15px;">
-                                    ${c.is_enrolled ? 
-                                        `<button class="enroll-btn" style="background:#2ecc71; cursor:default;" disabled><i class="fas fa-check"></i> Enrolled</button>` :
-                                        `<a href="../MISC/payment.html?course_id=${c.id}&name=${encodeURIComponent(c.title)}&price=${c.price}" class="enroll-btn">Enroll Now</a>`
-                                    }
-                                </div>
-                            </div>
-                        `;
-                    }).join('');
-
-                    document.getElementById('statEnrolledCount').textContent = enrolledCount;
-                } else {
-                    container.innerHTML = `<div style="grid-column:1/-1; text-align:center; padding:30px;">No courses currently available.</div>`;
-                }
-            })
-            .catch(err => {
-                console.error("Course fetch error:", err);
-                container.innerHTML = `<div style="grid-column:1/-1; text-align:center; color:red; padding:30px;">Error loading courses from database.</div>`;
-            });
-    }
-
-    function escapeHtml(text) {
-        if (!text) return '';
-        return text.replace(/[&<>"']/g, function(m) {
-            return {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'}[m];
-        });
-    }
-    </script>
 </body>
-</html>
+</html> 

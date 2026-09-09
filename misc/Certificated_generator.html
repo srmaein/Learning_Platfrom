@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Certificate Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tangerine:wght@700&family=Dancing+Script&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+        
+        .generator-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .input-section {
+            flex: 1;
+            min-width: 300px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .preview-section {
+            flex: 2;
+            min-width: 500px;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+        
+        button:hover {
+            background-color: #388E3C;
+        }
+        
+        .certificate-container {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-bottom: 70%; /* Aspect ratio */
+            margin-bottom: 20px;
+        }
+        
+        .certificate {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('../PUBLIC/pic/certificated.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        
+        .certificate-text {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 0 10%;
+            top: 0;
+            left: 0;
+        }
+        
+        .name {
+            font-size: 38px;
+            font-weight: bold;
+            margin-top: 130px;
+            margin-left: 60px;
+            text-align: center;
+            width: 100%;
+            font-family: 'Tangerine', cursive;
+        }
+        
+        .date {
+            font-size: 14px;
+            margin-bottom: 20px;
+            text-align: center;
+            position: relative;
+            margin-top: 160px;
+            width: 100%;
+        }
+        
+        .signature {
+            font-style: italic;
+            font-size: 24px;
+            text-align: right;
+            position: relative;
+            margin-bottom: 40px;
+            width: 100%;
+            margin-right: 60px;
+            font-family: 'Dancing Script', cursive;
+        }
+        
+        .btn-container {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-print {
+            background-color: #2196F3;
+        }
+        
+        .btn-print:hover {
+            background-color: #0D47A1;
+        }
+        
+        .btn-return {
+            background-color: #FF9800;
+        }
+        
+        .btn-return:hover {
+            background-color: #F57C00;
+        }
+        
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            
+            .certificate-for-print {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100vw;
+                height: 100vh;
+                padding: 0;
+                margin: 0;
+                display: block !important;
+            }
+            
+            .certificate-for-print,
+            .certificate-for-print * {
+                visibility: visible;
+            }
+            
+            .certificate-for-print .certificate {
+                width: 100%;
+                height: 100%;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                background-image: url('../PUBLIC/pic/certificated.png') !important;
+                background-size: contain !important;
+                background-repeat: no-repeat !important;
+                background-position: center !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            
+            @page {
+                size: landscape;
+                margin: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Certificate Generator</h1>
+        
+        <div class="generator-section">
+            <div class="input-section">
+                <div class="form-group">
+                    <label for="name">Full Name:</label>
+                    <input type="text" id="name" placeholder="Enter recipient's name" />
+                </div>
+                
+                <div class="form-group">
+                    <label for="date">Date:</label>
+                    <input type="date" id="date" />
+                </div>
+                
+                <div class="form-group">
+                    <label for="signature">Signature:</label>
+                    <input type="text" id="signature" placeholder="Enter signatory name" />
+                </div>
+                
+                <div class="btn-container">
+                    <button id="generate-btn">Generate Certificate</button>
+                    <button id="print-btn" class="btn-print">Print/Save as PDF</button>
+                    <button id="return-btn" class="btn-return">Return to Dashboard</button>
+                </div>
+            </div>
+            
+            <div class="preview-section">
+                <h2>Certificate Preview</h2>
+                <div class="certificate-container">
+                    <div class="certificate">
+                        <div class="certificate-text">
+                            <div class="name" id="name-text"></div>
+                            <div class="date" id="date-text"></div>
+                            <div class="signature" id="signature-text"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="certificate-for-print" style="display: none;">
+        <div class="certificate">
+            <div class="certificate-text">
+                <div class="name" id="print-name-text"></div>
+                <div class="date" id="print-date-text"></div>
+                <div class="signature" id="print-signature-text"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const nameInput = document.getElementById('name');
+            const dateInput = document.getElementById('date');
+            const signatureInput = document.getElementById('signature');
+            
+            const nameText = document.getElementById('name-text');
+            const dateText = document.getElementById('date-text');
+            const signatureText = document.getElementById('signature-text');
+            
+            const printNameText = document.getElementById('print-name-text');
+            const printDateText = document.getElementById('print-date-text');
+            const printSignatureText = document.getElementById('print-signature-text');
+            
+            const generateBtn = document.getElementById('generate-btn');
+            const printBtn = document.getElementById('print-btn');
+            const returnBtn = document.getElementById('return-btn');
+            
+            // Set current date as default
+            const today = new Date();
+            const formattedDate = today.toISOString().split('T')[0];
+            dateInput.value = formattedDate;
+            
+            // Add input event listeners for immediate feedback
+            nameInput.addEventListener('input', updateCertificate);
+            dateInput.addEventListener('input', updateCertificate);
+            signatureInput.addEventListener('input', updateCertificate);
+            
+            // Return to Dashboard functionality
+            returnBtn.addEventListener('click', function() {
+                window.location.href = '../login.php';
+            });
+            
+            function updateCertificate() {
+                // Update preview certificate
+                nameText.textContent = nameInput.value || 'Your Name';
+                
+                // Format date
+                let displayDate = 'Date';
+                if (dateInput.value) {
+                    const date = new Date(dateInput.value);
+                    displayDate = date.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                }
+                dateText.textContent = displayDate;
+                
+                signatureText.textContent = signatureInput.value || 'Signature';
+                
+                // Also update print version
+                printNameText.textContent = nameInput.value || 'Your Name';
+                printDateText.textContent = displayDate;
+                printSignatureText.textContent = signatureInput.value || 'Signature';
+            }
+            
+            generateBtn.addEventListener('click', updateCertificate);
+            
+            printBtn.addEventListener('click', function() {
+                // Make sure content is generated before printing
+                updateCertificate();
+                
+                // Ensure the print div is visible before printing
+                document.querySelector('.certificate-for-print').style.display = 'block';
+                
+                // Print the certificate
+                setTimeout(function() {
+                    window.print();
+                    // Add listener to detect when print dialog is closed
+                    window.addEventListener('afterprint', function() {
+                        // Redirect to dashboard after printing
+                        setTimeout(function() {
+                            window.location.href = '../MODELS/index.html';
+                        }, 500);
+                    });
+                }, 300);
+            });
+            
+            // Generate default certificate on page load
+            updateCertificate();
+        });
+    </script>
+</body>
+</html> 

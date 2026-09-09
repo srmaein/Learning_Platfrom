@@ -1,16 +1,7 @@
 <?php
 // Database connection
-$host = 'localhost';
-$dbname = 'online_education';
-$username = 'root';
-$password = '';
-
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch(PDOException $e) {
-    die("Connection failed: " . $e->getMessage());
-}
+require_once __DIR__ . '/../../DATABASE/db_connection.php';
+$pdo = getPgPDO();
 
 // Function to sanitize input data
 function sanitize($data) {

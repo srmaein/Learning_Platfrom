@@ -1,19 +1,10 @@
 <?php
 // Database connection
-$host = 'localhost';
-$dbname = 'Online_Education';
-$username = 'root';
-$password = '';
-
-try {
-    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-} catch(PDOException $e) {
-    die("Connection failed: " . $e->getMessage());
-}
+require_once __DIR__ . '/../../DATABASE/db_connection.php';
+$pdo = getPgPDO();
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
-    $email = filter_var($_POST['email'], FILTER_VALIDATE_EMAIL);
+    $email = filter_var($_POST['email'] ?? '', FILTER_VALIDATE_EMAIL);
     
     if (!$email) {
         die(json_encode([
@@ -23,43 +14,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     try {
-        // Check in admin_registration table
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM admin_registration WHERE email = ?");
+        // Query unified users table
+        $stmt = $pdo->prepare("SELECT id, email, role FROM users WHERE email = ? AND status = 'ACTIVE'");
         $stmt->execute([$email]);
-        $adminExists = $stmt->fetchColumn() > 0;
+        $user = $stmt->fetch();
 
-        // Check in student_registration table
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM student_registration WHERE email = ?");
-        $stmt->execute([$email]);
-        $studentExists = $stmt->fetchColumn() > 0;
-
-        // Check in teachers table (changed from teacher_registration)
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM teachers WHERE email = ?");
-        $stmt->execute([$email]);
-        $teacherExists = $stmt->fetchColumn() > 0;
-
-        if ($adminExists || $studentExists || $teacherExists) {
-            // Email exists in at least one table
-            session_start();
-            $_SESSION['reset_email'] = $email;
-            
-            // Store the user type in session for password reset
-            if ($adminExists) {
-                $_SESSION['user_type'] = 'admin';
-            } elseif ($studentExists) {
-                $_SESSION['user_type'] = 'student';
-            } else {
-                $_SESSION['user_type'] = 'teacher';
+        if ($user) {
+            if (session_status() === PHP_SESSION_NONE) {
+                session_start();
             }
+            $_SESSION['reset_email'] = $user['email'];
+            $_SESSION['user_type'] = $user['role'];
+            $_SESSION['user_id'] = $user['id'];
             
-            // Return success response
             echo json_encode([
                 'status' => 'success',
                 'message' => 'Email verified successfully'
             ]);
             exit();
         } else {
-            // Email not found in any table
             echo json_encode([
                 'status' => 'error',
                 'message' => 'Email not found in our records'
@@ -77,4 +50,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     header("Location: ../../VIEWS/auth/forget-password.html");
     exit();
 }
-?> 
+?>

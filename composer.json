@@ -1,0 +1,17 @@
+{
+    "name": "online-learning-platform/app",
+    "description": "Production Online Learning Platform on Railway with PostgreSQL",
+    "type": "project",
+    "require": {
+        "php": ">=7.4",
+        "ext-pdo": "*",
+        "ext-pdo_pgsql": "*",
+        "ext-json": "*",
+        "ext-mbstring": "*"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true
+    }
+}

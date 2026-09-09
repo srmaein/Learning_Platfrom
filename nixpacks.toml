@@ -5,7 +5,16 @@ providers = ["php"]
 PHP_VERSION = "8.2"
 
 [phases.setup]
-nixPkgs = ["php82", "php82Extensions.pdo_pgsql", "php82Extensions.pgsql", "php82Extensions.mbstring", "php82Extensions.openssl"]
+nixPkgs = [
+    "php82",
+    "php82Extensions.pdo_pgsql",
+    "php82Extensions.pgsql",
+    "php82Extensions.mbstring",
+    "php82Extensions.gd",
+    "php82Extensions.openssl",
+    "php82Extensions.pdo",
+    "php82Extensions.json"
+]
 
 [start]
 cmd = "php -S 0.0.0.0:$PORT"

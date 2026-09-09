@@ -1,111 +1,99 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    // Set secure cookie parameters
-    session_set_cookie_params([
-        'lifetime' => 0,
-        'path' => '/',
-        'domain' => '',
-        'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on',
-        'httponly' => true,
-        'samesite' => 'Lax'
-    ]);
-    session_start();
-}
+session_start();
 
-require_once __DIR__ . '/../../config.php';
-
-/**
- * Enforces session authentication and role-based authorization
- * 
- * @param array|string $allowedRoles Array of allowed roles e.g. ['admin', 'teacher'] or string 'admin'
- */
-function require_auth($allowedRoles = []) {
-    if (is_string($allowedRoles)) {
-        $allowedRoles = [$allowedRoles];
-    }
-    
-    $allowedRoles = array_map('strtolower', $allowedRoles);
-
-    $isAjax = (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') ||
-              (isset($_SERVER['HTTP_ACCEPT']) && str_contains($_SERVER['HTTP_ACCEPT'], 'application/json'));
-
-    // Check if session exists
-    if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_type'])) {
-        if ($isAjax) {
-            http_response_code(401);
-            header('Content-Type: application/json');
-            echo json_encode([
-                'status' => 'error',
-                'message' => 'Session expired or unauthenticated.',
-                'redirect' => BASE_URL . 'login.php'
-            ]);
-            exit();
-        } else {
-            header("Location: " . BASE_URL . "login.php");
-            exit();
-        }
-    }
-
-    // Session inactivity timeout (2 hours)
-    $timeout = 7200;
-    if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity'] > $timeout)) {
+// Function to check if session is valid
+function checkSession() {
+    // Check if session exists and has required data
+    if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_type']) || !isset($_SESSION['username'])) {
+        // Clear any existing session data
         session_unset();
         session_destroy();
-        if ($isAjax) {
-            http_response_code(401);
-            header('Content-Type: application/json');
-            echo json_encode([
-                'status' => 'error',
-                'message' => 'Session timed out due to inactivity.',
-                'redirect' => BASE_URL . 'login.php'
-            ]);
-            exit();
-        } else {
-            header("Location: " . BASE_URL . "login.php?session=expired");
-            exit();
-        }
+        
+        // Set response headers
+        header('Content-Type: application/json');
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Session expired or invalid',
+            'redirect' => '../../login.php'
+        ]);
+        exit();
     }
-    $_SESSION['last_activity'] = time();
-
-    // Verify role authorization if restricted
-    $currentUserRole = strtolower($_SESSION['user_type'] ?? $_SESSION['role'] ?? '');
-    if (!empty($allowedRoles) && !in_array($currentUserRole, $allowedRoles)) {
-        if ($isAjax) {
-            http_response_code(403);
-            header('Content-Type: application/json');
-            echo json_encode([
-                'status' => 'error',
-                'message' => 'Access forbidden: Insufficient permissions.'
-            ]);
-            exit();
-        } else {
-            http_response_code(403);
-            echo "<!DOCTYPE html><html><head><title>Access Forbidden</title><style>body{font-family:sans-serif;text-align:center;padding:50px;background:#f8f9fa;}h1{color:#e74c3c;}.btn{display:inline-block;padding:10px 20px;background:#3498db;color:#fff;text-decoration:none;border-radius:5px;margin-top:20px;}</style></head><body><h1>403 Forbidden</h1><p>You do not have administrative permission to access this resource.</p><a href='" . BASE_URL . "login.php' class='btn'>Return to Safety</a></body></html>";
-            exit();
-        }
+    
+    // Check if session cookie exists
+    if (!isset($_COOKIE[session_name()])) {
+        // Clear any existing session data
+        session_unset();
+        session_destroy();
+        
+        // Set response headers
+        header('Content-Type: application/json');
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Session cookie not found',
+            'redirect' => '../../login.php'
+        ]);
+        exit();
     }
-
+    
     return true;
 }
 
-// Function to handle AJAX session check ping
-function checkSessionStatus() {
-    if (isset($_GET['check_session'])) {
-        header('Content-Type: application/json');
-        if (isset($_SESSION['user_id']) && isset($_SESSION['user_type'])) {
-            echo json_encode([
-                'valid' => true,
-                'user_id' => $_SESSION['user_id'],
-                'username' => $_SESSION['username'] ?? '',
-                'name' => $_SESSION['name'] ?? '',
-                'user_type' => $_SESSION['user_type']
-            ]);
-        } else {
-            echo json_encode(['valid' => false]);
-        }
+// Function to handle AJAX session checks
+function handleAjaxSessionCheck() {
+    if (isset($_SERVER['HTTP_X_REQUESTED_WITH']) && 
+        strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+        checkSession();
+        echo json_encode(['status' => 'success']);
         exit();
     }
 }
 
-checkSessionStatus();
-?>
+// If this file is included directly, perform the check
+if (basename($_SERVER['PHP_SELF']) == basename(__FILE__)) {
+    checkSession();
+}
+
+// Check if user is logged in
+if (!isset($_SESSION['username']) || !isset($_SESSION['user_type'])) {
+    header("Location: ../../login.php");
+    exit();
+}
+
+// Check if user is accessing the correct dashboard
+$current_page = basename($_SERVER['PHP_SELF']);
+$user_type = $_SESSION['user_type'];
+
+switch ($current_page) {
+    case 'dashboard.html':
+        if ($user_type !== 'admin') {
+            header("Location: ../../login.php");
+            exit();
+        }
+        break;
+    case 'index.html':
+        if ($user_type !== 'student') {
+            header("Location: ../../login.php");
+            exit();
+        }
+        break;
+    case 'teadas.html':
+        if ($user_type !== 'teacher') {
+            header("Location: ../../login.php");
+            exit();
+        }
+        break;
+}
+
+// Return user information for AJAX requests
+if (isset($_GET['get_info'])) {
+    echo json_encode([
+        'status' => 'success',
+        'data' => [
+            'username' => $_SESSION['username'],
+            'name' => $_SESSION['name'],
+            'user_type' => $_SESSION['user_type']
+        ]
+    ]);
+    exit();
+}
+?> 

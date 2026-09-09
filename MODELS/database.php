@@ -6,18 +6,18 @@ class Database {
     private $conn;
 
     public function __construct() {
-        $this->conn = get_db_connection();
+        $this->conn = getPgPDO();
     }
 
     public static function getInstance() {
         if (self::$instance === null) {
-            self::$instance = new Database();
+            self::$instance = getPgPDO();
         }
-        return self::$instance->getConnection();
+        return self::$instance;
     }
 
     public function getConnection() {
-        return $this->conn;
+        return getPgPDO();
     }
 
     public function testConnection() {
@@ -28,11 +28,11 @@ class Database {
                 $result = $stmt->fetch();
                 return [
                     'status' => 'success',
-                    'message' => 'Railway PostgreSQL database connection successful',
-                    'user_count' => $result['count']
+                    'message' => 'Database connection successful',
+                    'user_count' => $result['count'] ?? 0
                 ];
             }
-        } catch (Exception $e) {
+        } catch(Exception $e) {
             return [
                 'status' => 'error',
                 'message' => $e->getMessage()

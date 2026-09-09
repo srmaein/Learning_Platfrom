@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction History</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: #f5f5f5;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 24px;
+        }
+
+        .back-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background 0.3s;
+        }
+
+        .back-btn:hover {
+            background: #45a049;
+        }
+
+        .search-container {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            padding: 10px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        .search-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .search-btn:hover {
+            background: #45a049;
+        }
+
+        .transaction-table {
+            width: 100%;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .transaction-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .transaction-table th,
+        .transaction-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .transaction-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .transaction-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status.completed {
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+
+        .status.pending {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .status.failed {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .no-transactions {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .no-transactions i {
+            font-size: 48px;
+            color: #ddd;
+            margin-bottom: 10px;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            background: #f8f9fa;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .transaction-table {
+                overflow-x: auto;
+            }
+
+            .transaction-table th,
+            .transaction-table td {
+                padding: 10px;
+                font-size: 14px;
+            }
+
+            .search-container {
+                flex-direction: column;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Transaction History</h1>
+            <a href="../MODELS/index.html" class="back-btn">Back to Dashboard</a>
+        </div>
+
+        <div class="search-container">
+            <input type="text" id="searchInput" class="search-box" placeholder="Search by name...">
+            <button class="search-btn" onclick="searchTransactions()">
+                <i class="fas fa-search"></i> Search
+            </button>
+        </div>
+
+        <div class="transaction-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Transaction ID</th>
+                        <th>Amount</th>
+                        <th>Card Holder Name</th>
+                        <th>Email</th>
+                        <th>Mobile Number</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="transactionBody">
+                    <!-- Transaction records will be added here dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Function to format date
+        function formatDate(dateString) {
+            const options = { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            return new Date(dateString).toLocaleDateString('en-US', options);
+        }
+
+        // Function to search transactions
+        function searchTransactions() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+            const tbody = document.getElementById('transactionBody');
+            
+            if (transactions.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7">
+                            <div class="no-transactions">
+                                <i class="fas fa-receipt"></i>
+                                <p>No transactions found</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            const filteredTransactions = transactions.filter(transaction => 
+                transaction.card_holder_name.toLowerCase().includes(searchTerm)
+            );
+
+            if (filteredTransactions.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7">
+                            <div class="no-results">
+                                <p>No transactions found matching "${searchTerm}"</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filteredTransactions.map(transaction => `
+                <tr>
+                    <td>${transaction.transaction_id}</td>
+                    <td>$${transaction.amount}</td>
+                    <td>${transaction.card_holder_name}</td>
+                    <td>${transaction.email}</td>
+                    <td>${transaction.mobile_number}</td>
+                    <td>${formatDate(transaction.date)}</td>
+                    <td><span class="status ${transaction.status.toLowerCase()}">${transaction.status}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        // Load transaction history
+        function loadTransactionHistory() {
+            const tbody = document.getElementById('transactionBody');
+            const transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+            
+            if (transactions.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7">
+                            <div class="no-transactions">
+                                <i class="fas fa-receipt"></i>
+                                <p>No transactions found</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = transactions.map(transaction => `
+                <tr>
+                    <td>${transaction.transaction_id}</td>
+                    <td>$${transaction.amount}</td>
+                    <td>${transaction.card_holder_name}</td>
+                    <td>${transaction.email}</td>
+                    <td>${transaction.mobile_number}</td>
+                    <td>${formatDate(transaction.date)}</td>
+                    <td><span class="status ${transaction.status.toLowerCase()}">${transaction.status}</span></td>
+                </tr>
+            `).join('');
+        }
+
+        // Add event listener for Enter key in search box
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchTransactions();
+            }
+        });
+
+        // Load transactions when page loads
+        document.addEventListener('DOMContentLoaded', loadTransactionHistory);
+    </script>
+</body>
+</html> 

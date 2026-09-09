@@ -24,6 +24,15 @@ SELECT setval('categories_id_seq', (SELECT MAX(id) FROM categories));
 -- 2. USERS & PROFILES SEED DATA
 -- -----------------------------------------------------------------------------
 
+-- Admin
+INSERT INTO users (id, email, username, password_hash, role, status) VALUES
+(100, 'admin@platform.com', 'admin', '$2y$10$8PvhEPs3da.FRVrz/Zchn.0ftaxwe8G1IQxjVNaMy7h6IEBX.dDHG', 'admin', 'ACTIVE')
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO profiles (user_id, first_name, last_name, full_name) VALUES
+(100, 'System', 'Admin', 'System Administrator')
+ON CONFLICT (user_id) DO NOTHING;
+
 -- Teachers
 INSERT INTO users (id, email, username, password_hash, role, status) VALUES
 (1, 'hasan@gmail.com', 'Hasan', '$2y$10$6i2lE4z6Q29R.iIHacDSAOdA.Mu85JQjA0yUc7ipbV3UWHncEvkSq', 'teacher', 'ACTIVE'),
