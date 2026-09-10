@@ -20,6 +20,20 @@ if ($isLoggedIn) {
         $dashboardUrl = 'VIEWS/USER/student_view.php';
     }
 }
+
+$conn = getPgPDO();
+$featuredCourses = [];
+try {
+    $stmt = $conn->query("SELECT c.*, cat.name as category_name, cat.slug as category_slug 
+                          FROM courses c 
+                          LEFT JOIN categories cat ON c.category_id = cat.id 
+                          ORDER BY c.created_at DESC");
+    if ($stmt) {
+        $featuredCourses = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+} catch (Exception $e) {
+    $featuredCourses = [];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -294,149 +308,61 @@ if ($isLoggedIn) {
 
             <!-- Courses Grid -->
             <div class="courses-grid">
-                <!-- Course 1 -->
-                <div class="glass-card course-card" data-category="web">
-                    <div class="course-thumb">
-                        <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=600&q=80" alt="Full Stack Web Development">
-                        <span class="course-category-badge">Web Development</span>
-                        <span class="course-price-badge">$49.99</span>
-                    </div>
-                    <div class="course-content">
-                        <div class="course-meta">
-                            <span><i class="bx bx-time"></i> 12 Weeks</span>
-                            <span class="rating"><i class="bx bxs-star"></i> 4.9 (320)</span>
-                        </div>
-                        <h3 class="course-title">Full Stack Modern Web Development</h3>
-                        <p class="course-desc">Master HTML5, CSS3, JavaScript, PHP, PDO, PostgreSQL, and modern responsive glassmorphism UI frameworks.</p>
-                        <div class="course-footer">
-                            <div class="instructor">
-                                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="Instructor">
-                                <span>Dr. Sarah Jenkins</span>
+                <?php if (!empty($featuredCourses)): ?>
+                    <?php foreach ($featuredCourses as $fc): ?>
+                        <?php 
+                            $catSlug = $fc['category_slug'] ?? 'web';
+                            $imgPath = !empty($fc['thumbnail']) ? $fc['thumbnail'] : 'PUBLIC/pic/img.jpg';
+                            $priceText = ($fc['price'] == 0) ? 'Free' : 'BDT ' . number_format($fc['price'], 2);
+                        ?>
+                        <div class="glass-card course-card" data-category="<?php echo htmlspecialchars($catSlug); ?>">
+                            <div class="course-thumb">
+                                <img src="<?php echo htmlspecialchars($imgPath); ?>" alt="<?php echo htmlspecialchars($fc['title']); ?>" onerror="this.src='PUBLIC/pic/img.jpg'">
+                                <span class="course-category-badge"><?php echo htmlspecialchars($fc['category_name'] ?? 'General'); ?></span>
+                                <span class="course-price-badge"><?php echo htmlspecialchars($priceText); ?></span>
                             </div>
-                            <a href="login.php" class="btn btn-outline" style="padding: 8px 16px; font-size: 13px;">Enroll</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Course 2 -->
-                <div class="glass-card course-card" data-category="python">
-                    <div class="course-thumb">
-                        <img src="https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?auto=format&fit=crop&w=600&q=80" alt="Python & Machine Learning">
-                        <span class="course-category-badge">Python & AI</span>
-                        <span class="course-price-badge">Free</span>
-                    </div>
-                    <div class="course-content">
-                        <div class="course-meta">
-                            <span><i class="bx bx-time"></i> 8 Weeks</span>
-                            <span class="rating"><i class="bx bxs-star"></i> 4.8 (410)</span>
-                        </div>
-                        <h3 class="course-title">Python Programming & AI Essentials</h3>
-                        <p class="course-desc">From core syntax to Machine Learning models, Neural Networks, Pandas, NumPy, and Scikit-Learn.</p>
-                        <div class="course-footer">
-                            <div class="instructor">
-                                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80" alt="Instructor">
-                                <span>Prof. Alan Turing</span>
+                            <div class="course-content">
+                                <div class="course-meta">
+                                    <span><i class="bx bx-time"></i> <?php echo htmlspecialchars($fc['duration'] ?? 'N/A'); ?></span>
+                                    <span class="rating"><i class="bx bxs-star"></i> 4.9</span>
+                                </div>
+                                <h3 class="course-title"><?php echo htmlspecialchars($fc['title']); ?></h3>
+                                <p class="course-desc"><?php echo htmlspecialchars(substr($fc['description'] ?? '', 0, 110)) . '...'; ?></p>
+                                <div class="course-footer">
+                                    <div class="instructor">
+                                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="Instructor">
+                                        <span>Verified Instructor</span>
+                                    </div>
+                                    <a href="VIEWS/USER/courses.php" class="btn btn-outline" style="padding: 8px 16px; font-size: 13px;">View Course</a>
+                                </div>
                             </div>
-                            <a href="login.php" class="btn btn-outline" style="padding: 8px 16px; font-size: 13px;">Enroll</a>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Course 3 -->
-                <div class="glass-card course-card" data-category="data">
-                    <div class="course-thumb">
-                        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80" alt="Data Analytics">
-                        <span class="course-category-badge">Data Science</span>
-                        <span class="course-price-badge">$59.99</span>
-                    </div>
-                    <div class="course-content">
-                        <div class="course-meta">
-                            <span><i class="bx bx-time"></i> 10 Weeks</span>
-                            <span class="rating"><i class="bx bxs-star"></i> 4.9 (285)</span>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <!-- Default Preset Courses -->
+                    <div class="glass-card course-card" data-category="web">
+                        <div class="course-thumb">
+                            <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=600&q=80" alt="Full Stack Web Development">
+                            <span class="course-category-badge">Web Development</span>
+                            <span class="course-price-badge">BDT 1,500.00</span>
                         </div>
-                        <h3 class="course-title">Data Analytics & Business Intelligence</h3>
-                        <p class="course-desc">Transform raw relational databases into interactive PowerBI & Tableau dashboards with advanced SQL analytics.</p>
-                        <div class="course-footer">
-                            <div class="instructor">
-                                <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=100&q=80" alt="Instructor">
-                                <span>Elena Rostova</span>
+                        <div class="course-content">
+                            <div class="course-meta">
+                                <span><i class="bx bx-time"></i> 12 Weeks</span>
+                                <span class="rating"><i class="bx bxs-star"></i> 4.9</span>
                             </div>
-                            <a href="login.php" class="btn btn-outline" style="padding: 8px 16px; font-size: 13px;">Enroll</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Course 4 -->
-                <div class="glass-card course-card" data-category="security">
-                    <div class="course-thumb">
-                        <img src="https://images.unsplash.com/photo-1563986768609-322da13575f3?auto=format&fit=crop&w=600&q=80" alt="Cyber Security">
-                        <span class="course-category-badge">Cyber Security</span>
-                        <span class="course-price-badge">$69.99</span>
-                    </div>
-                    <div class="course-content">
-                        <div class="course-meta">
-                            <span><i class="bx bx-time"></i> 14 Weeks</span>
-                            <span class="rating"><i class="bx bxs-star"></i> 4.95 (190)</span>
-                        </div>
-                        <h3 class="course-title">Ethical Hacking & Network Defense</h3>
-                        <p class="course-desc">Learn penetration testing, vulnerability analysis, cryptography, network security protocols, and ethical hacking.</p>
-                        <div class="course-footer">
-                            <div class="instructor">
-                                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&q=80" alt="Instructor">
-                                <span>Marcus Vance</span>
+                            <h3 class="course-title">Full Stack Modern Web Development</h3>
+                            <p class="course-desc">Master HTML5, CSS3, JavaScript, PHP, PDO, PostgreSQL, and modern responsive glassmorphism UI frameworks.</p>
+                            <div class="course-footer">
+                                <div class="instructor">
+                                    <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80" alt="Instructor">
+                                    <span>Dr. Sarah Jenkins</span>
+                                </div>
+                                <a href="VIEWS/USER/courses.php" class="btn btn-outline" style="padding: 8px 16px; font-size: 13px;">View Course</a>
                             </div>
-                            <a href="login.php" class="btn btn-outline" style="padding: 8px 16px; font-size: 13px;">Enroll</a>
                         </div>
                     </div>
-                </div>
-
-                <!-- Course 5 -->
-                <div class="glass-card course-card" data-category="web">
-                    <div class="course-thumb">
-                        <img src="https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?auto=format&fit=crop&w=600&q=80" alt="Mobile App Development">
-                        <span class="course-category-badge">Mobile App</span>
-                        <span class="course-price-badge">$39.99</span>
-                    </div>
-                    <div class="course-content">
-                        <div class="course-meta">
-                            <span><i class="bx bx-time"></i> 8 Weeks</span>
-                            <span class="rating"><i class="bx bxs-star"></i> 4.7 (310)</span>
-                        </div>
-                        <h3 class="course-title">Cross-Platform Flutter & iOS/Android</h3>
-                        <p class="course-desc">Build beautiful, high-performance native iOS and Android mobile applications using Flutter & Dart.</p>
-                        <div class="course-footer">
-                            <div class="instructor">
-                                <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&w=100&q=80" alt="Instructor">
-                                <span>Chloe Bennett</span>
-                            </div>
-                            <a href="login.php" class="btn btn-outline" style="padding: 8px 16px; font-size: 13px;">Enroll</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Course 6 -->
-                <div class="glass-card course-card" data-category="python">
-                    <div class="course-thumb">
-                        <img src="https://images.unsplash.com/photo-1504639725590-34d0984388bd?auto=format&fit=crop&w=600&q=80" alt="Cloud & DevOps">
-                        <span class="course-category-badge">Cloud & DevOps</span>
-                        <span class="course-price-badge">$79.99</span>
-                    </div>
-                    <div class="course-content">
-                        <div class="course-meta">
-                            <span><i class="bx bx-time"></i> 10 Weeks</span>
-                            <span class="rating"><i class="bx bxs-star"></i> 4.85 (150)</span>
-                        </div>
-                        <h3 class="course-title">DevOps, Docker & Railway Deployment</h3>
-                        <p class="course-desc">Automate CI/CD pipelines, Docker containerization, cloud hosting, PostgreSQL deployment, and Nixpacks environments.</p>
-                        <div class="course-footer">
-                            <div class="instructor">
-                                <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=100&q=80" alt="Instructor">
-                                <span>David Miller</span>
-                            </div>
-                            <a href="login.php" class="btn btn-outline" style="padding: 8px 16px; font-size: 13px;">Enroll</a>
-                        </div>
-                    </div>
-                </div>
+                <?php endif; ?>
             </div>
         </div>
     </section>

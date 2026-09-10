@@ -60,20 +60,21 @@ if (!function_exists('getPgPDO')) {
             initPgSqlSchema($pdo);
             return $pdo;
         } catch (PDOException $e) {
-            // Try with empty password if postgres default fails
+            // Try MySQL (XAMPP / local MySQL)
             try {
-                $pdo = new PDO("pgsql:host=$host;port=$port;dbname=$dbname", $user, "", [
+                $myHost = defined('DB_HOST') ? DB_HOST : 'localhost';
+                $myDb   = defined('DB_NAME') ? DB_NAME : 'online_education';
+                $myUser = defined('DB_USER') ? DB_USER : 'root';
+                $myPass = defined('DB_PASS') ? DB_PASS : '';
+                $pdo = new PDO("mysql:host=$myHost;dbname=$myDb;charset=utf8mb4", $myUser, $myPass, [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                    PDO::ATTR_EMULATE_PREPARES => false
+                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
                 ]);
-                initPgSqlSchema($pdo);
+                initMySqlSchema($pdo);
                 return $pdo;
-            } catch (PDOException $e2) {
+            } catch (PDOException $eMysql) {
                 // Persistent Local Fallback Database (SQLite) for offline local development
                 $sqliteFile = __DIR__ . '/database.sqlite';
-                $isNewSqlite = !file_exists($sqliteFile);
-
                 $pdo = new PDO("sqlite:" . $sqliteFile, null, null, [
                     PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
                     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
@@ -247,6 +248,161 @@ if (!function_exists('initPgSqlSchema')) {
             }
         } catch (Exception $e) {
             error_log("PostgreSQL Schema Auto-Init Warning: " . $e->getMessage());
+        }
+    }
+}
+
+if (!function_exists('initMySqlSchema')) {
+    function initMySqlSchema($pdo) {
+        static $initialized = false;
+        if ($initialized) return;
+        $initialized = true;
+
+        try {
+            $pdo->exec("
+                CREATE TABLE IF NOT EXISTS users (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    email VARCHAR(255) NOT NULL UNIQUE,
+                    username VARCHAR(255) NOT NULL UNIQUE,
+                    password_hash VARCHAR(255) NOT NULL,
+                    role VARCHAR(50) NOT NULL DEFAULT 'student',
+                    status VARCHAR(50) NOT NULL DEFAULT 'ACTIVE',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+                CREATE TABLE IF NOT EXISTS profiles (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    user_id INT NOT NULL UNIQUE,
+                    first_name VARCHAR(100),
+                    last_name VARCHAR(100),
+                    full_name VARCHAR(200),
+                    age INT,
+                    date_of_birth VARCHAR(50),
+                    gender VARCHAR(50),
+                    blood_group VARCHAR(20),
+                    phone_number VARCHAR(50),
+                    address TEXT,
+                    qualifications TEXT,
+                    teacher_user_id VARCHAR(100) UNIQUE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+                CREATE TABLE IF NOT EXISTS categories (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    name VARCHAR(100) NOT NULL UNIQUE,
+                    slug VARCHAR(100) NOT NULL UNIQUE,
+                    description TEXT,
+                    icon VARCHAR(100) DEFAULT 'fas fa-book'
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+                CREATE TABLE IF NOT EXISTS courses (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    course_code VARCHAR(100) UNIQUE,
+                    title VARCHAR(255) NOT NULL,
+                    slug VARCHAR(255) UNIQUE,
+                    description TEXT,
+                    category_id INT,
+                    instructor_id INT,
+                    price DECIMAL(10,2) DEFAULT 0.00,
+                    duration VARCHAR(100),
+                    level VARCHAR(50) DEFAULT 'Beginner',
+                    thumbnail VARCHAR(255),
+                    tutorials_count INT DEFAULT 0,
+                    is_published TINYINT(1) DEFAULT 1,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+                CREATE TABLE IF NOT EXISTS enrollments (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    user_id INT NOT NULL,
+                    course_id INT NOT NULL,
+                    status VARCHAR(50) DEFAULT 'ENROLLED',
+                    progress_percent INT DEFAULT 0,
+                    enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    UNIQUE KEY uq_user_course (user_id, course_id)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+                CREATE TABLE IF NOT EXISTS admin_audit_logs (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    admin_id INT,
+                    action VARCHAR(100),
+                    entity_type VARCHAR(100),
+                    entity_id INT,
+                    details TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+            ");
+
+            // Auto-sync teachers table into users & profiles
+            try {
+                $teachersStmt = $pdo->query("SELECT * FROM teachers");
+                if ($teachersStmt) {
+                    while ($t = $teachersStmt->fetch(PDO::FETCH_ASSOC)) {
+                        $email = trim($t['email'] ?? '');
+                        $username = trim($t['username'] ?? '');
+                        if (empty($email) || empty($username)) continue;
+
+                        $uCheck = $pdo->prepare("SELECT id FROM users WHERE email = ? OR username = ?");
+                        $uCheck->execute([$email, $username]);
+                        $uRow = $uCheck->fetch(PDO::FETCH_ASSOC);
+
+                        if (!$uRow) {
+                            $pw = !empty($t['password']) ? $t['password'] : password_hash('teacher123', PASSWORD_BCRYPT);
+                            $insU = $pdo->prepare("INSERT INTO users (email, username, password_hash, role, status) VALUES (?, ?, ?, 'teacher', 'ACTIVE')");
+                            $insU->execute([$email, $username, $pw]);
+                            $newUid = $pdo->lastInsertId();
+                        } else {
+                            $newUid = $uRow['id'];
+                        }
+
+                        $pCheck = $pdo->prepare("SELECT id FROM profiles WHERE user_id = ?");
+                        $pCheck->execute([$newUid]);
+                        if (!$pCheck->fetchColumn()) {
+                            $parts = explode(' ', trim($t['teacher_name'] ?? 'Teacher'), 2);
+                            $insP = $pdo->prepare("INSERT INTO profiles (user_id, first_name, last_name, full_name, age, date_of_birth, blood_group, phone_number, address, qualifications, teacher_user_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                            $insP->execute([
+                                $newUid,
+                                $parts[0],
+                                $parts[1] ?? '',
+                                trim($t['teacher_name'] ?? 'Teacher'),
+                                $t['age'] ?? null,
+                                $t['date_of_birth'] ?? null,
+                                $t['blood_group'] ?? null,
+                                $t['phone_number'] ?? null,
+                                $t['address'] ?? null,
+                                $t['qualifications'] ?? null,
+                                $t['user_id'] ?? null
+                            ]);
+                        }
+                    }
+                }
+            } catch (Exception $exT) {}
+
+            $checkCat = $pdo->query("SELECT COUNT(*) FROM categories")->fetchColumn();
+            if ($checkCat == 0) {
+                $pdo->exec("
+                    INSERT IGNORE INTO categories (id, name, slug, description) VALUES
+                    (1, 'Web Development', 'web-development', 'HTML, CSS, JS, PHP, MySQL'),
+                    (2, 'Python & AI', 'python-ai', 'Machine Learning & Deep Learning'),
+                    (3, 'Data Science', 'data-science', 'SQL Analytics, PowerBI & Tableau'),
+                    (4, 'Cyber Security', 'cyber-security', 'Ethical Hacking & Defense'),
+                    (5, 'Mobile App', 'mobile-app', 'Flutter & React Native');
+                ");
+            }
+
+            $checkCourses = $pdo->query("SELECT COUNT(*) FROM courses")->fetchColumn();
+            if ($checkCourses == 0) {
+                $pdo->exec("
+                    INSERT IGNORE INTO courses (title, slug, description, category_id, instructor_id, price, duration, level, thumbnail, is_published) VALUES
+                    ('Full Stack Modern Web Development', 'full-stack-web-dev', 'Master HTML5, CSS3, JavaScript, PHP, PDO, PostgreSQL, and modern responsive glassmorphism UI frameworks.', 1, 100, 1500.00, '12 Weeks', 'Beginner', 'PUBLIC/pic/img.jpg', 1),
+                    ('Python Programming & AI Essentials', 'python-programming-ai', 'From core syntax to Machine Learning models, Neural Networks, Pandas, NumPy, and Scikit-Learn.', 2, 100, 0.00, '8 Weeks', 'Intermediate', 'PUBLIC/pic/img.jpg', 1),
+                    ('Data Analytics & Business Intelligence', 'data-analytics-bi', 'Transform raw relational databases into interactive PowerBI & Tableau dashboards with advanced SQL analytics.', 3, 100, 2000.00, '10 Weeks', 'Advanced', 'PUBLIC/pic/img.jpg', 1);
+                ");
+            }
+        } catch (Exception $e) {
+            error_log("MySQL Schema Auto-Init Warning: " . $e->getMessage());
         }
     }
 }

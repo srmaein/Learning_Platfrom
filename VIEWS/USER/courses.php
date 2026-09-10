@@ -337,6 +337,103 @@ $userRole = $_SESSION['user_type'] ?? 'student';
         .enroll-link:hover {
             opacity: 0.9;
         }
+        .btn-success {
+            background: #2ecc71;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #27ae60;
+        }
+
+        .btn-warning {
+            background: #f39c12;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .btn-info {
+            background: #3498db;
+            color: white;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        /* Modal styling */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-card {
+            background: #fff;
+            width: 550px;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-card h3 {
+            margin-top: 0;
+            margin-bottom: 15px;
+            color: #1e293b;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #475569;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .image-preview-box {
+            width: 100%;
+            height: 120px;
+            border: 2px dashed #cbd5e1;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-top: 8px;
+            background: #f8fafc;
+        }
+
+        .image-preview-box img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
     </style>
 </head>
 <body>
@@ -368,9 +465,12 @@ $userRole = $_SESSION['user_type'] ?? 'student';
                 <p>Browse all available online courses and expand your skills</p>
             </div>
             <div class="action-btns">
+                <button class="btn btn-success" onclick="openAddCourseModal()">
+                    <i class="fas fa-plus-circle"></i> + Add New Course
+                </button>
                 <?php if ($userRole === 'admin' || $userRole === 'teacher'): ?>
                     <a href="courses_admin.php" class="btn btn-primary">
-                        <i class="fas fa-cog"></i> Course Management (CRUD)
+                        <i class="fas fa-cog"></i> Advanced Admin Table
                     </a>
                 <?php endif; ?>
             </div>
@@ -390,8 +490,9 @@ $userRole = $_SESSION['user_type'] ?? 'student';
                 <?php foreach ($courses as $c): ?>
                     <?php 
                         $imgPath = !empty($c['thumbnail']) ? (strpos($c['thumbnail'], 'PUBLIC/') === 0 ? '../../' . $c['thumbnail'] : $c['thumbnail']) : '../../PUBLIC/pic/img.jpg';
+                        $jsonCourse = htmlspecialchars(json_encode($c), ENT_QUOTES, 'UTF-8');
                     ?>
-                    <div class="course-card">
+                    <div class="course-card" data-id="<?php echo $c['id']; ?>">
                         <div class="course-img">
                             <img src="<?php echo htmlspecialchars($imgPath); ?>" alt="Course Image" onerror="this.src='../../PUBLIC/pic/img.jpg'">
                             <span class="badge-category"><?php echo htmlspecialchars($c['category_name'] ?? 'General'); ?></span>
@@ -404,7 +505,14 @@ $userRole = $_SESSION['user_type'] ?? 'student';
                                 <span class="duration-info">
                                     <i class="far fa-clock"></i> <?php echo htmlspecialchars($c['duration'] ?? 'N/A'); ?>
                                 </span>
-                                <a href="../../login.php" class="enroll-link">Enroll Now</a>
+                                <div class="card-actions">
+                                    <button onclick="editCourseFromCard(<?php echo $jsonCourse; ?>)" class="btn btn-info" style="padding: 6px 12px; font-size: 12px;">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button onclick="deleteCourseFromCard(<?php echo $c['id']; ?>)" class="btn btn-danger" style="padding: 6px 10px; font-size: 12px;">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -442,23 +550,63 @@ $userRole = $_SESSION['user_type'] ?? 'student';
                         </div>
                     </div>
                 </div>
+            <?php endif; ?>
+        </div>
+    </div>
 
-                <div class="course-card">
-                    <div class="course-img">
-                        <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80" alt="Data Science">
-                        <span class="badge-category">Data Science</span>
-                        <span class="badge-price">BDT 2,000.00</span>
-                    </div>
-                    <div class="course-body">
-                        <h3>Data Analytics & Business Intelligence</h3>
-                        <p>Transform raw relational databases into interactive PowerBI & Tableau dashboards with SQL.</p>
-                        <div class="course-footer">
-                            <span class="duration-info"><i class="far fa-clock"></i> 10 Weeks</span>
-                            <a href="../../login.php" class="enroll-link">Enroll Now</a>
-                        </div>
+    <!-- Add/Edit Course Modal -->
+    <div class="modal-overlay" id="courseModal">
+        <div class="modal-card">
+            <h3 id="modalTitle">Create New Course</h3>
+            <form id="courseForm" enctype="multipart/form-data">
+                <input type="hidden" name="id" id="courseId">
+                <div class="form-group">
+                    <label>Course Title</label>
+                    <input type="text" name="title" id="courseTitle" required placeholder="e.g. Advanced Full Stack Web Development">
+                </div>
+                <div class="form-group">
+                    <label>Category</label>
+                    <select name="category_id" id="courseCategory">
+                        <option value="1">Web Development</option>
+                        <option value="2">Python & AI</option>
+                        <option value="3">Data Science</option>
+                        <option value="4">Cyber Security</option>
+                        <option value="5">Mobile App</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description" id="courseDesc" rows="3" placeholder="Course outline and key concepts..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Price (BDT)</label>
+                    <input type="number" step="0.01" name="price" id="coursePrice" required value="1500.00">
+                </div>
+                <div class="form-group">
+                    <label>Duration</label>
+                    <input type="text" name="duration" id="courseDuration" value="08:00 hours/Daily">
+                </div>
+                <div class="form-group">
+                    <label>Level</label>
+                    <select name="level" id="courseLevel">
+                        <option value="Beginner">Beginner</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Advanced">Advanced</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Course Image Upload (JPG, PNG, WEBP)</label>
+                    <input type="file" name="course_image" id="courseImageFile" accept="image/jpeg,image/png,image/webp" onchange="previewUploadImage(this)">
+                    <div class="image-preview-box" id="previewBox">
+                        <span style="color:#aaa; font-size:13px;">No image selected</span>
                     </div>
                 </div>
-            <?php endif; ?>
+                <input type="hidden" name="thumbnail" id="courseThumb" value="PUBLIC/pic/img.jpg">
+                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+                    <button type="button" class="btn btn-warning" onclick="closeCourseModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="saveCourseBtn">Save Course</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -471,7 +619,93 @@ $userRole = $_SESSION['user_type'] ?? 'student';
                     $(this).toggle(text.includes(term));
                 });
             });
+
+            $('#courseForm').on('submit', function(e) {
+                e.preventDefault();
+                const id = $('#courseId').val();
+                const action = id ? 'update_course' : 'create_course';
+                
+                const formData = new FormData(this);
+                const saveBtn = $('#saveCourseBtn');
+                saveBtn.prop('disabled', true).text('Saving...');
+
+                $.ajax({
+                    url: '../../CONTROLLAR/process/process_course.php?action=' + action,
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    dataType: 'json',
+                    success: function(response) {
+                        saveBtn.prop('disabled', false).text('Save Course');
+                        if (response.status === 'success') {
+                            alert(response.message);
+                            closeCourseModal();
+                            window.location.reload();
+                        } else {
+                            alert(response.message);
+                        }
+                    },
+                    error: function(err) {
+                        saveBtn.prop('disabled', false).text('Save Course');
+                        alert("Error saving course: " + (err.responseJSON ? err.responseJSON.message : "Server or network error"));
+                    }
+                });
+            });
         });
+
+        function openAddCourseModal() {
+            $('#modalTitle').text('Create New Course');
+            $('#courseForm')[0].reset();
+            $('#courseId').val('');
+            $('#courseThumb').val('PUBLIC/pic/img.jpg');
+            $('#previewBox').html('<span style="color:#aaa; font-size:13px;">No image selected</span>');
+            $('#courseModal').css('display', 'flex');
+        }
+
+        function closeCourseModal() {
+            $('#courseModal').hide();
+        }
+
+        function editCourseFromCard(c) {
+            $('#modalTitle').text('Edit Course Details');
+            $('#courseId').val(c.id);
+            $('#courseTitle').val(c.title);
+            $('#courseCategory').val(c.category_id || '1');
+            $('#courseDesc').val(c.description);
+            $('#coursePrice').val(c.price);
+            $('#courseDuration').val(c.duration);
+            $('#courseLevel').val(c.level || 'Beginner');
+            $('#courseThumb').val(c.thumbnail || 'PUBLIC/pic/img.jpg');
+            
+            const imgPath = c.thumbnail ? (c.thumbnail.startsWith('PUBLIC/') ? '../../' + c.thumbnail : c.thumbnail) : '../../PUBLIC/pic/img.jpg';
+            $('#previewBox').html(`<img src="${imgPath}" alt="Preview" onerror="this.src='../../PUBLIC/pic/img.jpg'">`);
+            $('#courseModal').css('display', 'flex');
+        }
+
+        function deleteCourseFromCard(id) {
+            if (confirm("Are you sure you want to delete this course?")) {
+                $.post('../../CONTROLLAR/process/process_course.php?action=delete_course', { id: id }, function(res) {
+                    if (res.status === 'success') {
+                        alert("Course deleted successfully!");
+                        window.location.reload();
+                    } else {
+                        alert(res.message);
+                    }
+                }, 'json');
+            }
+        }
+
+        function previewUploadImage(input) {
+            const previewBox = document.getElementById('previewBox');
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewBox.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
     </script>
 </body>
 </html>

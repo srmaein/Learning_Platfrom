@@ -37,7 +37,7 @@ function controller($path) {
 
 // Database configuration
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'your_database_name');
+define('DB_NAME', 'online_education');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 ?> 

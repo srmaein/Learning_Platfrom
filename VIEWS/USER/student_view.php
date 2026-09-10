@@ -19,6 +19,17 @@ $query = "SELECT u.id, u.email, u.username, u.status, u.created_at, p.first_name
           WHERE u.role = 'student' 
           ORDER BY p.first_name ASC";
 $result = $conn->query($query);
+
+// Fetch courses for student dashboard showcase
+$studentCourses = [];
+try {
+    $cStmt = $conn->query("SELECT c.*, cat.name as category_name FROM courses c LEFT JOIN categories cat ON c.category_id = cat.id ORDER BY c.created_at DESC");
+    if ($cStmt) {
+        $studentCourses = $cStmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+} catch (Exception $e) {
+    $studentCourses = [];
+}
 ?>
 
 <!DOCTYPE html>
@@ -451,6 +462,46 @@ $result = $conn->query($query);
                     ?>
                 </tbody>
             </table>
+        </div>
+
+        <!-- Available Courses Catalog Section -->
+        <div style="margin-top: 40px; margin-bottom: 30px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="font-size: 20px; color: #333;"><i class="fas fa-book-open" style="color: var(--primary-color);"></i> Available Courses Catalog</h2>
+                <a href="courses.php" class="btn btn-primary" style="font-size: 13px; padding: 6px 14px;"><i class="fas fa-external-link-alt"></i> Browse All Courses</a>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+                <?php if (!empty($studentCourses)): ?>
+                    <?php foreach (array_slice($studentCourses, 0, 6) as $sc): ?>
+                        <?php 
+                            $scImg = !empty($sc['thumbnail']) ? (strpos($sc['thumbnail'], 'PUBLIC/') === 0 ? '../../' . $sc['thumbnail'] : $sc['thumbnail']) : '../../PUBLIC/pic/img.jpg';
+                            $scPrice = ($sc['price'] == 0) ? 'Free' : 'BDT ' . number_format($sc['price'], 2);
+                        ?>
+                        <div style="background: white; border-radius: 10px; overflow: hidden; box-shadow: var(--shadow); display: flex; flex-direction: column;">
+                            <div style="height: 140px; position: relative;">
+                                <img src="<?php echo htmlspecialchars($scImg); ?>" style="width: 100%; height: 100%; object-fit: cover;" onerror="this.src='../../PUBLIC/pic/img.jpg'">
+                                <span style="position: absolute; top: 10px; left: 10px; background: rgba(0,0,0,0.7); color: #fff; padding: 3px 8px; border-radius: 12px; font-size: 11px;">
+                                    <?php echo htmlspecialchars($sc['category_name'] ?? 'General'); ?>
+                                </span>
+                                <span style="position: absolute; bottom: 10px; right: 10px; background: var(--primary-color); color: #fff; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: bold;">
+                                    <?php echo htmlspecialchars($scPrice); ?>
+                                </span>
+                            </div>
+                            <div style="padding: 15px; display: flex; flex-direction: column; flex: 1;">
+                                <h4 style="font-size: 16px; color: #1e293b; margin-bottom: 6px;"><?php echo htmlspecialchars($sc['title']); ?></h4>
+                                <p style="font-size: 12px; color: #64748b; margin-bottom: 12px; flex: 1;"><?php echo htmlspecialchars(substr($sc['description'] ?? '', 0, 80)) . '...'; ?></p>
+                                <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f1f5f9; padding-top: 10px;">
+                                    <span style="font-size: 12px; color: #64748b;"><i class="far fa-clock"></i> <?php echo htmlspecialchars($sc['duration'] ?? 'N/A'); ?></span>
+                                    <a href="courses.php" style="background: var(--sidebar-color); color: white; padding: 5px 12px; border-radius: 5px; text-decoration: none; font-size: 12px; font-weight: 600;">Enroll</a>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <p style="color: #666; font-size: 14px;">No courses available at the moment.</p>
+                <?php endif; ?>
+            </div>
         </div>
 
         <div class="footer">
