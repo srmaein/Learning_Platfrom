@@ -3,13 +3,29 @@ require_once __DIR__ . '/../../DATABASE/db_connection.php';
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
+
+// Role-based protection: only admins allowed
+$currentUserRole = strtolower(trim($_SESSION['user_type'] ?? ''));
+if (!isset($_SESSION['user_id']) || $currentUserRole !== 'admin') {
+    if ($currentUserRole === 'teacher') {
+        header('Location: teacher_dashboard.php');
+        exit();
+    } elseif ($currentUserRole === 'student') {
+        header('Location: student_view.php');
+        exit();
+    } else {
+        header('Location: ../../login.php');
+        exit();
+    }
+}
+
 $conn = getPgPDO();
 
 // Fetch all admin information
 $query = "SELECT u.id, u.email, u.username, u.status, u.created_at, p.full_name as admin_name, p.phone_number, p.address, p.age, p.date_of_birth, p.blood_group
           FROM users u 
           LEFT JOIN profiles p ON u.id = p.user_id 
-          WHERE u.role = 'admin'";
+          WHERE LOWER(u.role) = 'admin'";
 $result = $conn->query($query);
 ?>
 
