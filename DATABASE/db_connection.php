@@ -196,6 +196,48 @@ if (!function_exists('initPgSqlSchema')) {
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
 
+                CREATE TABLE IF NOT EXISTS teachers (
+                    id SERIAL PRIMARY KEY,
+                    teacher_name VARCHAR(100) NOT NULL,
+                    age INT,
+                    date_of_birth VARCHAR(50),
+                    blood_group VARCHAR(20),
+                    phone_number VARCHAR(20),
+                    address TEXT,
+                    email VARCHAR(100) UNIQUE,
+                    qualifications TEXT,
+                    user_id VARCHAR(50),
+                    username VARCHAR(50) UNIQUE,
+                    password VARCHAR(255),
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+
+                CREATE TABLE IF NOT EXISTS student_registration (
+                    id SERIAL PRIMARY KEY,
+                    first_name VARCHAR(100) NOT NULL,
+                    last_name VARCHAR(100) NOT NULL,
+                    contact VARCHAR(20),
+                    gender VARCHAR(20),
+                    blood_group VARCHAR(20),
+                    user_type VARCHAR(50) DEFAULT 'Student',
+                    email VARCHAR(100) UNIQUE,
+                    password VARCHAR(255),
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+
+                CREATE TABLE IF NOT EXISTS assignments (
+                    id SERIAL PRIMARY KEY,
+                    course_id INT NOT NULL,
+                    teacher_id INT NOT NULL,
+                    title VARCHAR(255) NOT NULL,
+                    description TEXT,
+                    total_marks INT DEFAULT 100,
+                    due_date VARCHAR(50),
+                    status VARCHAR(50) DEFAULT 'ACTIVE',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+
                 CREATE TABLE IF NOT EXISTS admin_audit_logs (
                     id SERIAL PRIMARY KEY,
                     admin_id INT,
@@ -324,6 +366,48 @@ if (!function_exists('initMySqlSchema')) {
                     UNIQUE KEY uq_user_course (user_id, course_id)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+                CREATE TABLE IF NOT EXISTS teachers (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    teacher_name VARCHAR(100) NOT NULL,
+                    age INT,
+                    date_of_birth VARCHAR(50),
+                    blood_group VARCHAR(20),
+                    phone_number VARCHAR(20),
+                    address TEXT,
+                    email VARCHAR(100) NOT NULL UNIQUE,
+                    qualifications TEXT,
+                    user_id VARCHAR(50),
+                    username VARCHAR(50) NOT NULL UNIQUE,
+                    password VARCHAR(255) NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+                CREATE TABLE IF NOT EXISTS student_registration (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    first_name VARCHAR(100) NOT NULL,
+                    last_name VARCHAR(100) NOT NULL,
+                    contact VARCHAR(20),
+                    gender VARCHAR(20),
+                    blood_group VARCHAR(20),
+                    user_type VARCHAR(50) DEFAULT 'Student',
+                    email VARCHAR(100) NOT NULL UNIQUE,
+                    password VARCHAR(255) NOT NULL,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+                CREATE TABLE IF NOT EXISTS assignments (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    course_id INT NOT NULL,
+                    teacher_id INT NOT NULL,
+                    title VARCHAR(255) NOT NULL,
+                    description TEXT,
+                    total_marks INT DEFAULT 100,
+                    due_date VARCHAR(50),
+                    status VARCHAR(50) DEFAULT 'ACTIVE',
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
                 CREATE TABLE IF NOT EXISTS admin_audit_logs (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     admin_id INT,
@@ -378,7 +462,47 @@ if (!function_exists('initMySqlSchema')) {
                         }
                     }
                 }
-            } catch (Exception $exT) {}
+            } catch (Throwable $exT) {}
+
+            // Auto-sync student_registration table into users & profiles
+            try {
+                $studentsStmt = $pdo->query("SELECT * FROM student_registration");
+                if ($studentsStmt) {
+                    while ($s = $studentsStmt->fetch(PDO::FETCH_ASSOC)) {
+                        $email = trim($s['email'] ?? '');
+                        if (empty($email)) continue;
+                        $username = strstr($email, '@', true) ?: $email;
+
+                        $uCheck = $pdo->prepare("SELECT id FROM users WHERE email = ? OR username = ?");
+                        $uCheck->execute([$email, $username]);
+                        $uRow = $uCheck->fetch(PDO::FETCH_ASSOC);
+
+                        if (!$uRow) {
+                            $pw = !empty($s['password']) ? $s['password'] : password_hash('pass1234', PASSWORD_BCRYPT);
+                            $insU = $pdo->prepare("INSERT INTO users (email, username, password_hash, role, status) VALUES (?, ?, ?, 'student', 'ACTIVE')");
+                            $insU->execute([$email, $username, $pw]);
+                            $newUid = $pdo->lastInsertId();
+                        } else {
+                            $newUid = $uRow['id'];
+                        }
+
+                        $pCheck = $pdo->prepare("SELECT id FROM profiles WHERE user_id = ?");
+                        $pCheck->execute([$newUid]);
+                        if (!$pCheck->fetchColumn()) {
+                            $insP = $pdo->prepare("INSERT INTO profiles (user_id, first_name, last_name, full_name, gender, blood_group, phone_number) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                            $insP->execute([
+                                $newUid,
+                                $s['first_name'] ?? '',
+                                $s['last_name'] ?? '',
+                                trim(($s['first_name'] ?? '') . ' ' . ($s['last_name'] ?? '')),
+                                $s['gender'] ?? null,
+                                $s['blood_group'] ?? null,
+                                $s['contact'] ?? null
+                            ]);
+                        }
+                    }
+                }
+            } catch (Throwable $exS) {}
 
             $checkCat = $pdo->query("SELECT COUNT(*) FROM categories")->fetchColumn();
             if ($checkCat == 0) {
@@ -435,6 +559,48 @@ if (!function_exists('initSqliteSchema')) {
                 address TEXT,
                 qualifications TEXT,
                 teacher_user_id TEXT UNIQUE,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+
+            CREATE TABLE IF NOT EXISTS teachers (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                teacher_name TEXT NOT NULL,
+                age INTEGER,
+                date_of_birth TEXT,
+                blood_group TEXT,
+                phone_number TEXT,
+                address TEXT,
+                email TEXT UNIQUE,
+                qualifications TEXT,
+                user_id TEXT,
+                username TEXT UNIQUE,
+                password TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+
+            CREATE TABLE IF NOT EXISTS student_registration (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                first_name TEXT NOT NULL,
+                last_name TEXT NOT NULL,
+                contact TEXT,
+                gender TEXT,
+                blood_group TEXT,
+                user_type TEXT DEFAULT 'Student',
+                email TEXT UNIQUE,
+                password TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+
+            CREATE TABLE IF NOT EXISTS assignments (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                course_id INTEGER NOT NULL,
+                teacher_id INTEGER NOT NULL,
+                title TEXT NOT NULL,
+                description TEXT,
+                total_marks INTEGER DEFAULT 100,
+                due_date TEXT,
+                status TEXT DEFAULT 'ACTIVE',
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             );
 

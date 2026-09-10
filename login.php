@@ -52,53 +52,59 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             // 2. Fallback check on legacy teachers table
             if (!$user) {
-                $tStmt = $conn->prepare("SELECT * FROM teachers WHERE LOWER(email) = LOWER(:input) OR LOWER(username) = LOWER(:input) OR LOWER(user_id) = LOWER(:input)");
-                $tStmt->execute([':input' => $inputUsername]);
-                $tRow = $tStmt->fetch(PDO::FETCH_ASSOC);
-                if ($tRow) {
-                    $user = [
-                        'id' => $tRow['id'],
-                        'username' => $tRow['username'],
-                        'email' => $tRow['email'],
-                        'password_hash' => $tRow['password'],
-                        'role' => 'teacher',
-                        'full_name' => $tRow['teacher_name']
-                    ];
-                }
+                try {
+                    $tStmt = $conn->prepare("SELECT * FROM teachers WHERE LOWER(email) = LOWER(:input) OR LOWER(username) = LOWER(:input) OR LOWER(user_id) = LOWER(:input)");
+                    $tStmt->execute([':input' => $inputUsername]);
+                    $tRow = $tStmt->fetch(PDO::FETCH_ASSOC);
+                    if ($tRow) {
+                        $user = [
+                            'id' => $tRow['id'],
+                            'username' => $tRow['username'],
+                            'email' => $tRow['email'],
+                            'password_hash' => $tRow['password'],
+                            'role' => 'teacher',
+                            'full_name' => $tRow['teacher_name']
+                        ];
+                    }
+                } catch (Throwable $exT) {}
             }
 
             // 3. Fallback check on legacy student_registration table
             if (!$user) {
-                $sStmt = $conn->prepare("SELECT * FROM student_registration WHERE LOWER(email) = LOWER(:input) OR LOWER(first_name) = LOWER(:input)");
-                $sStmt->execute([':input' => $inputUsername]);
-                $sRow = $sStmt->fetch(PDO::FETCH_ASSOC);
-                if ($sRow) {
-                    $user = [
-                        'id' => $sRow['id'],
-                        'username' => $sRow['email'],
-                        'email' => $sRow['email'],
-                        'password_hash' => $sRow['password'],
-                        'role' => 'student',
-                        'full_name' => trim(($sRow['first_name'] ?? '') . ' ' . ($sRow['last_name'] ?? ''))
-                    ];
-                }
+                try {
+                    $sStmt = $conn->prepare("SELECT * FROM student_registration WHERE LOWER(email) = LOWER(:input) OR LOWER(first_name) = LOWER(:input)");
+                    $sStmt->execute([':input' => $inputUsername]);
+                    $sRow = $sStmt->fetch(PDO::FETCH_ASSOC);
+                    if ($sRow) {
+                        $user = [
+                            'id' => $sRow['id'],
+                            'username' => $sRow['email'],
+                            'email' => $sRow['email'],
+                            'password_hash' => $sRow['password'],
+                            'role' => 'student',
+                            'full_name' => trim(($sRow['first_name'] ?? '') . ' ' . ($sRow['last_name'] ?? ''))
+                        ];
+                    }
+                } catch (Throwable $exS) {}
             }
 
             // 4. Fallback check on legacy admin_registration table
             if (!$user) {
-                $aStmt = $conn->prepare("SELECT * FROM admin_registration WHERE LOWER(email) = LOWER(:input) OR LOWER(username) = LOWER(:input)");
-                $aStmt->execute([':input' => $inputUsername]);
-                $aRow = $aStmt->fetch(PDO::FETCH_ASSOC);
-                if ($aRow) {
-                    $user = [
-                        'id' => $aRow['id'],
-                        'username' => $aRow['username'],
-                        'email' => $aRow['email'],
-                        'password_hash' => $aRow['password'],
-                        'role' => 'admin',
-                        'full_name' => $aRow['admin_name']
-                    ];
-                }
+                try {
+                    $aStmt = $conn->prepare("SELECT * FROM admin_registration WHERE LOWER(email) = LOWER(:input) OR LOWER(username) = LOWER(:input)");
+                    $aStmt->execute([':input' => $inputUsername]);
+                    $aRow = $aStmt->fetch(PDO::FETCH_ASSOC);
+                    if ($aRow) {
+                        $user = [
+                            'id' => $aRow['id'],
+                            'username' => $aRow['username'],
+                            'email' => $aRow['email'],
+                            'password_hash' => $aRow['password'],
+                            'role' => 'admin',
+                            'full_name' => $aRow['admin_name']
+                        ];
+                    }
+                } catch (Throwable $exA) {}
             }
 
             if ($user) {
