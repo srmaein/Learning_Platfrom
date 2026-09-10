@@ -34,38 +34,87 @@ $studentName = !empty($_SESSION['name']) ? $_SESSION['name'] : (!empty($studentP
 $studentEmail = !empty($studentProfile['email']) ? $studentProfile['email'] : ($_SESSION['email'] ?? 'student@platform.com');
 $actualUid = $studentProfile['id'] ?? $currentUserId;
 
-// Fetch enrolled courses for this student
+// Fetch enrolled courses for this student from DB
 $enrolledCourses = [];
+$enrolledCourseIds = [];
 try {
     $eStmt = $conn->prepare("
         SELECT c.*, cat.name as category_name, e.progress_percent, e.status as enrollment_status, e.enrolled_at
         FROM enrollments e
         JOIN courses c ON e.course_id = c.id
         LEFT JOIN categories cat ON c.category_id = cat.id
-        WHERE e.user_id = :uid
+        WHERE e.user_id = :uid AND e.status = 'ENROLLED'
         ORDER BY e.enrolled_at DESC
     ");
     $eStmt->execute([':uid' => $actualUid]);
     $enrolledCourses = $eStmt->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($enrolledCourses as $ec) {
+        $enrolledCourseIds[] = $ec['id'];
+    }
 } catch (Exception $e) {
     $enrolledCourses = [];
 }
 
-// If no enrollments found in DB, pull catalog courses to display interactive dashboard demonstration
-if (empty($enrolledCourses)) {
-    try {
-        $cStmt = $conn->query("
-            SELECT c.*, cat.name as category_name, 75 as progress_percent, 'ENROLLED' as enrollment_status, CURRENT_TIMESTAMP as enrolled_at
-            FROM courses c 
-            LEFT JOIN categories cat ON c.category_id = cat.id 
-            ORDER BY c.id ASC LIMIT 4
-        ");
-        if ($cStmt) {
-            $enrolledCourses = $cStmt->fetchAll(PDO::FETCH_ASSOC);
-        }
-    } catch (Exception $e) {
-        $enrolledCourses = [];
+// Fetch all catalog courses for exploration & demo enrollment
+$catalogCourses = [];
+try {
+    $cStmt = $conn->query("
+        SELECT c.*, cat.name as category_name 
+        FROM courses c 
+        LEFT JOIN categories cat ON c.category_id = cat.id 
+        ORDER BY c.created_at DESC
+    ");
+    if ($cStmt) {
+        $catalogCourses = $cStmt->fetchAll(PDO::FETCH_ASSOC);
     }
+} catch (Exception $e) {
+    $catalogCourses = [];
+}
+
+// If database has no courses, fallback to sample demo courses
+if (empty($catalogCourses)) {
+    $catalogCourses = [
+        [
+            'id' => 1,
+            'course_code' => 'CSE-401',
+            'title' => 'Full Stack Modern Web Development with PHP & MySQL',
+            'description' => 'Master HTML5, CSS3, JavaScript, PHP PDO, MySQL database design, and modern responsive glassmorphism UI frameworks.',
+            'category_name' => 'Web Development',
+            'price' => 4500.00,
+            'duration' => '12 Weeks',
+            'thumbnail' => 'PUBLIC/pic/img.jpg'
+        ],
+        [
+            'id' => 2,
+            'course_code' => 'AI-302',
+            'title' => 'Python Programming & Artificial Intelligence Essentials',
+            'description' => 'From core syntax to Machine Learning models, Deep Neural Networks, Pandas, NumPy, and Scikit-Learn data science stack.',
+            'category_name' => 'Python & AI',
+            'price' => 6000.00,
+            'duration' => '10 Weeks',
+            'thumbnail' => 'PUBLIC/pic/img.jpg'
+        ],
+        [
+            'id' => 3,
+            'course_code' => 'DAT-205',
+            'title' => 'Data Analytics & Business Intelligence Dashboarding',
+            'description' => 'Transform raw relational databases into interactive PowerBI & Tableau dashboards with advanced SQL data analytics.',
+            'category_name' => 'Data Science',
+            'price' => 3500.00,
+            'duration' => '8 Weeks',
+            'thumbnail' => 'PUBLIC/pic/img.jpg'
+        ],
+        [
+            'id' => 4,
+            'course_code' => 'SEC-101',
+            'title' => 'Cyber Security Essentials & Network Defense',
+            'description' => 'Ethical hacking methodologies, penetration testing fundamentals, network security architecture, and vulnerability assessment.',
+            'category_name' => 'Cyber Security',
+            'price' => 5000.00,
+            'duration' => '8 Weeks',
+            'thumbnail' => 'PUBLIC/pic/img.jpg'
+        ]
+    ];
 }
 
 // Fetch active assignments for student's courses
@@ -85,7 +134,6 @@ try {
     $studentAssignments = [];
 }
 
-// Default demonstration assignments if empty
 if (empty($studentAssignments)) {
     $studentAssignments = [
         [
@@ -105,20 +153,11 @@ if (empty($studentAssignments)) {
             'total_marks' => 50,
             'due_date' => date('Y-m-d', strtotime('+7 days')),
             'status' => 'ACTIVE'
-        ],
-        [
-            'id' => 103,
-            'title' => 'SQL Analytics & PowerBI Dashboard Project',
-            'course_title' => 'Data Analytics & Business Intelligence',
-            'course_code' => 'DAT-205',
-            'total_marks' => 100,
-            'due_date' => date('Y-m-d', strtotime('+12 days')),
-            'status' => 'SUBMITTED'
         ]
     ];
 }
 
-// Structured Attendance Record Data
+// Attendance Records Data
 $attendanceRecords = [
     [
         'date' => date('Y-m-d', strtotime('today')),
@@ -151,26 +190,10 @@ $attendanceRecords = [
         'topic' => 'CSS Flexbox, Grid Layouts & Micro-Animations',
         'time' => '10:00 AM - 11:30 AM',
         'status' => 'LATE'
-    ],
-    [
-        'date' => date('Y-m-d', strtotime('-6 days')),
-        'course' => 'Cyber Security Essentials',
-        'code' => 'SEC-101',
-        'topic' => 'Ethical Hacking & Network Defense Mechanisms',
-        'time' => '04:00 PM - 05:30 PM',
-        'status' => 'PRESENT'
-    ],
-    [
-        'date' => date('Y-m-d', strtotime('-8 days')),
-        'course' => 'Python Programming & AI Essentials',
-        'code' => 'AI-302',
-        'topic' => 'Numpy Vectorization & Multidimensional Arrays',
-        'time' => '02:00 PM - 03:30 PM',
-        'status' => 'EXCUSED'
     ]
 ];
 
-// Calculate Attendance Stats
+// Attendance calculation
 $totalClasses = count($attendanceRecords);
 $presentCount = 0;
 foreach ($attendanceRecords as $ar) {
@@ -186,7 +209,7 @@ $attendanceRate = $totalClasses > 0 ? round(($presentCount / $totalClasses) * 10
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Student Portal Dashboard - Online Learning Platform</title>
+    <title>Student Dashboard - Online Learning Platform</title>
     <!-- Google Fonts & Font Awesome -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -323,11 +346,6 @@ $attendanceRate = $totalClasses > 0 ? round(($presentCount / $totalClasses) * 10
         .menu-link:hover {
             color: #ffffff;
             background: var(--sidebar-hover);
-        }
-
-        .menu-link:hover i {
-            transform: translateX(3px);
-            color: var(--primary-light);
         }
 
         .menu-link.active {
@@ -631,7 +649,7 @@ $attendanceRate = $totalClasses > 0 ? round(($presentCount / $totalClasses) * 10
             color: var(--primary);
         }
 
-        /* Enrolled Courses Grid */
+        /* Courses Cards Grid */
         .courses-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -775,23 +793,32 @@ $attendanceRate = $totalClasses > 0 ? round(($presentCount / $totalClasses) * 10
             gap: 6px;
         }
 
-        .continue-btn {
+        .btn-action {
             background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
             color: #ffffff;
-            padding: 8px 16px;
+            padding: 8px 18px;
             border-radius: 10px;
             text-decoration: none;
             font-size: 13px;
             font-weight: 600;
+            border: none;
+            cursor: pointer;
             transition: all 0.25s ease;
             display: inline-flex;
             align-items: center;
             gap: 6px;
         }
 
-        .continue-btn:hover {
+        .btn-action:hover {
             box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
             transform: translateY(-1px);
+        }
+
+        .btn-enrolled {
+            background: #dcfce7;
+            color: #15803d;
+            cursor: default;
+            font-weight: 700;
         }
 
         /* Attendance & Assignments Layout Grid */
@@ -856,51 +883,149 @@ $attendanceRate = $totalClasses > 0 ? round(($presentCount / $totalClasses) * 10
             color: #a16207;
         }
 
-        .badge-excused {
-            background: #e0f2fe;
-            color: #0369a1;
+        /* Modal Popup Design System */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(6px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
 
-        /* Assignments List */
-        .assignment-list {
-            list-style: none;
-            margin-top: 14px;
+        .modal-card {
+            background: #ffffff;
+            border-radius: 20px;
+            max-width: 520px;
+            width: 100%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            animation: modalSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        .assignment-item {
+        @keyframes modalSlide {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            padding: 24px;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-header h4 {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            background: rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            border: none;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.35);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .payment-option-card {
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
             padding: 16px;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            margin-bottom: 12px;
+            margin-bottom: 14px;
+            cursor: pointer;
             transition: all 0.2s ease;
             display: flex;
-            flex-direction: column;
-            gap: 8px;
+            align-items: flex-start;
+            gap: 14px;
         }
 
-        .assignment-item:hover {
-            border-color: var(--primary-light);
-            background: #faf5ff;
+        .payment-option-card:hover, .payment-option-card.selected {
+            border-color: var(--primary);
+            background: rgba(108, 92, 231, 0.04);
         }
 
-        .assignment-title-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        .payment-option-card input[type="radio"] {
+            margin-top: 4px;
+            accent-color: var(--primary);
         }
 
-        .assignment-title-row h5 {
-            font-size: 14px;
+        .payment-info h5 {
+            font-size: 15px;
             font-weight: 700;
             color: var(--text-dark);
+            margin-bottom: 2px;
         }
 
-        .assignment-meta {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        .payment-info p {
             font-size: 12px;
             color: var(--text-muted);
+            line-height: 1.4;
+        }
+
+        .bkash-details-box {
+            background: #fff0f5;
+            border: 1px dashed #e60067;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 14px;
+            display: none;
+        }
+
+        .bkash-number-badge {
+            font-size: 18px;
+            font-weight: 800;
+            color: #e60067;
+            letter-spacing: 1px;
+            display: block;
+            margin: 6px 0 10px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s ease;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(108, 92, 231, 0.15);
+        }
+
+        .modal-footer {
+            padding: 18px 24px;
+            background: #f8fafc;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
         }
 
         /* Footer */
@@ -917,34 +1042,6 @@ $attendanceRate = $totalClasses > 0 ? round(($presentCount / $totalClasses) * 10
         @media (max-width: 1024px) {
             .content-grid-2col {
                 grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 768px) {
-            .sidebar {
-                width: 70px;
-            }
-            .brand-text, .menu-label, .menu-link span, .user-details {
-                display: none;
-            }
-            .sidebar-brand {
-                padding: 16px 12px;
-                justify-content: center;
-            }
-            .menu-link {
-                justify-content: center;
-                padding: 12px;
-            }
-            .main-wrapper {
-                margin-left: 70px;
-            }
-            .welcome-banner {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 20px;
-            }
-            .content-container {
-                padding: 16px;
             }
         }
     </style>
@@ -972,9 +1069,15 @@ $attendanceRate = $totalClasses > 0 ? round(($presentCount / $totalClasses) * 10
                 </a>
             </li>
             <li class="menu-item">
-                <a href="courses.php" class="menu-link">
+                <a href="#my-courses" class="menu-link">
                     <i class="fas fa-book-open"></i>
-                    <span>My Courses</span>
+                    <span>My Enrolled Courses</span>
+                </a>
+            </li>
+            <li class="menu-item">
+                <a href="#catalog" class="menu-link">
+                    <i class="fas fa-search"></i>
+                    <span>Explore Courses</span>
                 </a>
             </li>
             <li class="menu-item">
@@ -990,12 +1093,6 @@ $attendanceRate = $totalClasses > 0 ? round(($presentCount / $totalClasses) * 10
                 </a>
             </li>
             <li class="menu-label">User Account</li>
-            <li class="menu-item">
-                <a href="courses.php" class="menu-link">
-                    <i class="fas fa-certificate"></i>
-                    <span>Certificates</span>
-                </a>
-            </li>
             <li class="menu-item">
                 <a href="../../login.php" class="menu-link">
                     <i class="fas fa-sign-out-alt"></i>
@@ -1022,13 +1119,13 @@ $attendanceRate = $totalClasses > 0 ? round(($presentCount / $totalClasses) * 10
         <!-- Top Navbar Header -->
         <header class="top-navbar">
             <div class="navbar-title">
-                <h2>Student Portal Dashboard</h2>
-                <p>Welcome back, <?php echo htmlspecialchars($studentName); ?>! Track your curriculum progress & attendance.</p>
+                <h2>Student Dashboard</h2>
+                <p>Welcome back, <?php echo htmlspecialchars($studentName); ?>! Explore curriculum & enroll in new courses.</p>
             </div>
             <div class="navbar-actions">
                 <div class="badge-currency">
-                    <i class="fas fa-user-graduate"></i>
-                    <span>Status: Enrolled Student</span>
+                    <i class="fas fa-wallet"></i>
+                    <span>Currency: ৳ BDT</span>
                 </div>
                 <a href="../../login.php" class="logout-btn">
                     <i class="fas fa-sign-out-alt"></i>
@@ -1043,16 +1140,16 @@ $attendanceRate = $totalClasses > 0 ? round(($presentCount / $totalClasses) * 10
             <div class="welcome-banner">
                 <div class="welcome-text">
                     <h1>Welcome Back, <?php echo htmlspecialchars($studentName); ?>! 👋</h1>
-                    <p>Keep up the great work! You have maintained a <strong><?php echo $attendanceRate; ?>% overall attendance rate</strong> across your enrolled courses this semester.</p>
+                    <p>Track your academic achievements, explore new industry-aligned courses, and complete instant enrollment via <strong>Cash on Delivery (COD)</strong> or <strong>bKash Mobile Financial Service</strong>.</p>
                     <div class="welcome-stats-badges">
-                        <span class="banner-pill"><i class="fas fa-book"></i> <?php echo count($enrolledCourses); ?> Active Courses</span>
+                        <span class="banner-pill"><i class="fas fa-book"></i> <?php echo count($enrolledCourses); ?> Enrolled Courses</span>
                         <span class="banner-pill"><i class="fas fa-calendar-check"></i> <?php echo $attendanceRate; ?>% Attendance</span>
-                        <span class="banner-pill"><i class="fas fa-award"></i> Grade A+ Standing</span>
+                        <span class="banner-pill"><i class="fas fa-award"></i> Active Student Status</span>
                     </div>
                 </div>
                 <div>
-                    <a href="courses.php" class="banner-action-btn">
-                        <i class="fas fa-play-circle"></i> Resume Learning
+                    <a href="#catalog" class="banner-action-btn">
+                        <i class="fas fa-plus-circle"></i> Enroll in New Course
                     </a>
                 </div>
             </div>
@@ -1065,7 +1162,7 @@ $attendanceRate = $totalClasses > 0 ? round(($presentCount / $totalClasses) * 10
                     </div>
                     <div class="kpi-data">
                         <h4><?php echo count($enrolledCourses); ?></h4>
-                        <p>Enrolled Courses</p>
+                        <p>My Enrolled Courses</p>
                     </div>
                 </div>
 
@@ -1100,49 +1197,99 @@ $attendanceRate = $totalClasses > 0 ? round(($presentCount / $totalClasses) * 10
                 </div>
             </div>
 
-            <!-- Section 1: Enrolled Courses -->
-            <section style="margin-bottom: 40px;">
+            <!-- Section 1: My Enrolled Courses -->
+            <section id="my-courses" style="margin-bottom: 40px;">
                 <div class="section-header">
                     <h3><i class="fas fa-book-open"></i> My Enrolled Courses & Progress</h3>
-                    <a href="courses.php" style="color: var(--primary); text-decoration: none; font-size: 14px; font-weight: 600;">
-                        View All Catalog <i class="fas fa-arrow-right"></i>
-                    </a>
+                </div>
+
+                <?php if (!empty($enrolledCourses)): ?>
+                    <div class="courses-grid">
+                        <?php foreach ($enrolledCourses as $course): ?>
+                            <?php 
+                                $thumb = !empty($course['thumbnail']) ? (strpos($course['thumbnail'], 'PUBLIC/') === 0 ? '../../' . $course['thumbnail'] : $course['thumbnail']) : '../../PUBLIC/pic/img.jpg';
+                                $fee = ($course['price'] == 0) ? 'FREE' : '৳ ' . number_format($course['price'], 2) . ' BDT';
+                                $progress = isset($course['progress_percent']) ? intval($course['progress_percent']) : 0;
+                                $code = !empty($course['course_code']) ? $course['course_code'] : ('CRS-' . sprintf('%03d', $course['id']));
+                            ?>
+                            <div class="course-card">
+                                <div class="course-thumb-wrapper">
+                                    <img src="<?php echo htmlspecialchars($thumb); ?>" class="course-thumb" alt="Course Thumbnail" onerror="this.src='../../PUBLIC/pic/img.jpg'">
+                                    <span class="category-badge"><?php echo htmlspecialchars($course['category_name'] ?? 'General'); ?></span>
+                                    <span class="price-badge"><?php echo htmlspecialchars($fee); ?></span>
+                                </div>
+                                <div class="course-body">
+                                    <div class="course-code-tag"><?php echo htmlspecialchars($code); ?></div>
+                                    <h4 class="course-title"><?php echo htmlspecialchars($course['title']); ?></h4>
+                                    <p class="course-desc"><?php echo htmlspecialchars(substr($course['description'] ?? '', 0, 90)) . '...'; ?></p>
+                                    
+                                    <div class="progress-wrapper">
+                                        <div class="progress-header">
+                                            <span>Progress</span>
+                                            <span><?php echo $progress; ?>%</span>
+                                        </div>
+                                        <div class="progress-bar-bg">
+                                            <div class="progress-bar-fill" style="width: <?php echo $progress; ?>%;"></div>
+                                        </div>
+                                    </div>
+
+                                    <div class="course-footer">
+                                        <span class="course-duration"><i class="far fa-clock"></i> <?php echo htmlspecialchars($course['duration'] ?? '8 Weeks'); ?></span>
+                                        <button class="btn-action btn-enrolled">
+                                            <i class="fas fa-check-circle"></i> Enrolled
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php else: ?>
+                    <div style="background: white; border-radius: 12px; padding: 32px; text-align: center; border: 1px solid var(--border-color);">
+                        <i class="fas fa-info-circle" style="font-size: 32px; color: var(--primary); margin-bottom: 12px;"></i>
+                        <h4 style="font-size: 16px; color: var(--text-dark); margin-bottom: 6px;">No Enrolled Courses Yet</h4>
+                        <p style="font-size: 13px; color: var(--text-muted);">Browse the course catalog below and enroll using Cash on Delivery (COD) or bKash!</p>
+                    </div>
+                <?php endif; ?>
+            </section>
+
+            <!-- Section 2: Explore Available Courses Catalog & Demo Enrollment -->
+            <section id="catalog" style="margin-bottom: 40px;">
+                <div class="section-header">
+                    <h3><i class="fas fa-search"></i> Explore & Enroll in Available Courses</h3>
+                    <span style="font-size: 13px; color: var(--text-muted);">Click "Enroll Now" to select payment method (COD or bKash)</span>
                 </div>
 
                 <div class="courses-grid">
-                    <?php foreach ($enrolledCourses as $course): ?>
+                    <?php foreach ($catalogCourses as $c): ?>
                         <?php 
-                            $thumb = !empty($course['thumbnail']) ? (strpos($course['thumbnail'], 'PUBLIC/') === 0 ? '../../' . $course['thumbnail'] : $course['thumbnail']) : '../../PUBLIC/pic/img.jpg';
-                            $fee = ($course['price'] == 0) ? 'FREE' : '৳ ' . number_format($course['price'], 2) . ' BDT';
-                            $progress = isset($course['progress_percent']) ? intval($course['progress_percent']) : 75;
-                            $code = !empty($course['course_code']) ? $course['course_code'] : ('CRS-' . sprintf('%03d', $course['id']));
+                            $isAlreadyEnrolled = in_array($c['id'], $enrolledCourseIds);
+                            $thumb = !empty($c['thumbnail']) ? (strpos($c['thumbnail'], 'PUBLIC/') === 0 ? '../../' . $c['thumbnail'] : $c['thumbnail']) : '../../PUBLIC/pic/img.jpg';
+                            $feeVal = (float)$c['price'];
+                            $feeFormatted = ($feeVal == 0) ? 'FREE' : '৳ ' . number_format($feeVal, 2) . ' BDT';
+                            $code = !empty($c['course_code']) ? $c['course_code'] : ('CRS-' . sprintf('%03d', $c['id']));
                         ?>
                         <div class="course-card">
                             <div class="course-thumb-wrapper">
                                 <img src="<?php echo htmlspecialchars($thumb); ?>" class="course-thumb" alt="Course Thumbnail" onerror="this.src='../../PUBLIC/pic/img.jpg'">
-                                <span class="category-badge"><?php echo htmlspecialchars($course['category_name'] ?? 'General'); ?></span>
-                                <span class="price-badge"><?php echo htmlspecialchars($fee); ?></span>
+                                <span class="category-badge"><?php echo htmlspecialchars($c['category_name'] ?? 'General'); ?></span>
+                                <span class="price-badge"><?php echo htmlspecialchars($feeFormatted); ?></span>
                             </div>
                             <div class="course-body">
                                 <div class="course-code-tag"><?php echo htmlspecialchars($code); ?></div>
-                                <h4 class="course-title"><?php echo htmlspecialchars($course['title']); ?></h4>
-                                <p class="course-desc"><?php echo htmlspecialchars(substr($course['description'] ?? '', 0, 90)) . '...'; ?></p>
-                                
-                                <div class="progress-wrapper">
-                                    <div class="progress-header">
-                                        <span>Course Completion</span>
-                                        <span><?php echo $progress; ?>%</span>
-                                    </div>
-                                    <div class="progress-bar-bg">
-                                        <div class="progress-bar-fill" style="width: <?php echo $progress; ?>%;"></div>
-                                    </div>
-                                </div>
+                                <h4 class="course-title"><?php echo htmlspecialchars($c['title']); ?></h4>
+                                <p class="course-desc"><?php echo htmlspecialchars(substr($c['description'] ?? '', 0, 95)) . '...'; ?></p>
 
                                 <div class="course-footer">
-                                    <span class="course-duration"><i class="far fa-clock"></i> <?php echo htmlspecialchars($course['duration'] ?? '8 Weeks'); ?></span>
-                                    <a href="courses.php" class="continue-btn">
-                                        <i class="fas fa-play"></i> Continue
-                                    </a>
+                                    <span class="course-duration"><i class="far fa-clock"></i> <?php echo htmlspecialchars($c['duration'] ?? '8 Weeks'); ?></span>
+                                    <?php if ($isAlreadyEnrolled): ?>
+                                        <button class="btn-action btn-enrolled">
+                                            <i class="fas fa-check-circle"></i> Enrolled
+                                        </button>
+                                    <?php else: ?>
+                                        <button class="btn-action" onclick="openEnrollModal(<?php echo $c['id']; ?>, '<?php echo addslashes(htmlspecialchars($c['title'])); ?>', '<?php echo $feeFormatted; ?>')">
+                                            <i class="fas fa-plus-circle"></i> Enroll Now
+                                        </button>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
@@ -1150,28 +1297,24 @@ $attendanceRate = $totalClasses > 0 ? round(($presentCount / $totalClasses) * 10
                 </div>
             </section>
 
-            <!-- Section 2: Attendance Log & Assignments Hub -->
+            <!-- Section 3: Attendance Log & Assignments Hub -->
             <div class="content-grid-2col">
                 <!-- Attendance Tracker Card -->
                 <div class="content-card" id="attendance">
                     <div class="section-header" style="margin-bottom: 12px;">
-                        <h3><i class="fas fa-calendar-check"></i> Recent Attendance Records</h3>
+                        <h3><i class="fas fa-calendar-check"></i> Attendance Tracker</h3>
                         <span style="font-size: 13px; color: var(--success); font-weight: 700;">
                             <i class="fas fa-check-circle"></i> <?php echo $presentCount; ?> / <?php echo $totalClasses; ?> Sessions Present
                         </span>
                     </div>
-                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
-                        Real-time daily classroom attendance tracking verified by instructors.
-                    </p>
 
                     <div style="overflow-x: auto;">
                         <table class="attendance-table">
                             <thead>
                                 <tr>
                                     <th>Date</th>
-                                    <th>Course Code & Title</th>
-                                    <th>Lesson Topic</th>
-                                    <th>Time Slot</th>
+                                    <th>Course</th>
+                                    <th>Topic</th>
                                     <th>Status</th>
                                 </tr>
                             </thead>
@@ -1184,14 +1327,11 @@ $attendanceRate = $totalClasses > 0 ? round(($presentCount / $totalClasses) * 10
                                             <span><?php echo htmlspecialchars($record['course']); ?></span>
                                         </td>
                                         <td><?php echo htmlspecialchars($record['topic']); ?></td>
-                                        <td style="white-space: nowrap; color: var(--text-muted); font-size: 12px;"><?php echo htmlspecialchars($record['time']); ?></td>
                                         <td>
                                             <?php if ($record['status'] === 'PRESENT'): ?>
                                                 <span class="status-badge badge-present"><i class="fas fa-check"></i> Present</span>
-                                            <?php elseif ($record['status'] === 'LATE'): ?>
-                                                <span class="status-badge badge-late"><i class="fas fa-clock"></i> Late</span>
                                             <?php else: ?>
-                                                <span class="status-badge badge-excused"><i class="fas fa-info-circle"></i> Excused</span>
+                                                <span class="status-badge badge-late"><i class="fas fa-clock"></i> Late</span>
                                             <?php endif; ?>
                                         </td>
                                     </tr>
@@ -1204,28 +1344,25 @@ $attendanceRate = $totalClasses > 0 ? round(($presentCount / $totalClasses) * 10
                 <!-- Assignments Hub Card -->
                 <div class="content-card" id="assignments">
                     <div class="section-header" style="margin-bottom: 12px;">
-                        <h3><i class="fas fa-tasks"></i> Assignments & Homework</h3>
+                        <h3><i class="fas fa-tasks"></i> Assignments Hub</h3>
                     </div>
-                    <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
-                        Pending coursework deadlines and submission updates.
-                    </p>
 
-                    <ul class="assignment-list">
+                    <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 14px;">
                         <?php foreach ($studentAssignments as $assign): ?>
-                            <li class="assignment-item">
-                                <div class="assignment-title-row">
-                                    <h5><?php echo htmlspecialchars($assign['title']); ?></h5>
-                                    <span style="font-size: 11px; background: rgba(108,92,231,0.1); color: var(--primary); padding: 2px 8px; border-radius: 10px; font-weight: 700;">
+                            <div style="padding: 14px; border: 1px solid var(--border-color); border-radius: 12px; background: #faf5ff;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                                    <h5 style="font-size: 13px; font-weight: 700; color: var(--text-dark);"><?php echo htmlspecialchars($assign['title']); ?></h5>
+                                    <span style="font-size: 11px; background: var(--primary); color: #fff; padding: 2px 8px; border-radius: 10px; font-weight: 700;">
                                         <?php echo htmlspecialchars($assign['course_code']); ?>
                                     </span>
                                 </div>
-                                <div class="assignment-meta">
-                                    <span><i class="far fa-calendar-alt"></i> Due: <strong><?php echo htmlspecialchars($assign['due_date']); ?></strong></span>
-                                    <span><i class="fas fa-star"></i> Max Marks: <?php echo intval($assign['total_marks']); ?></span>
+                                <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted);">
+                                    <span>Due Date: <strong><?php echo htmlspecialchars($assign['due_date']); ?></strong></span>
+                                    <span>Marks: <?php echo intval($assign['total_marks']); ?></span>
                                 </div>
-                            </li>
+                            </div>
                         <?php endforeach; ?>
-                    </ul>
+                    </div>
                 </div>
             </div>
         </main>
@@ -1236,5 +1373,145 @@ $attendanceRate = $totalClasses > 0 ? round(($presentCount / $totalClasses) * 10
         </footer>
     </div>
 
+    <!-- Payment & Enrollment Modal -->
+    <div class="modal-overlay" id="enrollModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h4><i class="fas fa-shopping-cart"></i> Complete Course Enrollment</h4>
+                <button class="modal-close" onclick="closeEnrollModal()">&times;</button>
+            </div>
+            
+            <form id="enrollmentForm" onsubmit="submitEnrollment(event)">
+                <input type="hidden" id="modalCourseId" name="course_id" value="">
+                
+                <div class="modal-body">
+                    <div style="background: #f8fafc; border-radius: 12px; padding: 16px; margin-bottom: 20px; border: 1px solid var(--border-color);">
+                        <span style="font-size: 11px; font-weight: 700; color: var(--primary); text-transform: uppercase;">Selected Course</span>
+                        <h4 id="modalCourseTitle" style="font-size: 16px; font-weight: 700; color: var(--text-dark); margin: 4px 0;"></h4>
+                        <span id="modalCoursePrice" style="font-size: 15px; font-weight: 800; color: var(--primary-dark);"></span>
+                    </div>
+
+                    <label style="font-size: 13px; font-weight: 700; color: var(--text-dark); display: block; margin-bottom: 10px;">Select Payment Method:</label>
+
+                    <!-- Payment Option 1: Cash on Delivery -->
+                    <label class="payment-option-card selected" id="optCOD" onclick="selectPaymentMethod('COD')">
+                        <input type="radio" name="payment_method" value="COD" checked>
+                        <div class="payment-info">
+                            <h5>Cash on Delivery (COD)</h5>
+                            <p>Pay cash upon course material/access receipt. Enrollment completes instantly with no further information required.</p>
+                        </div>
+                    </label>
+
+                    <!-- Payment Option 2: bKash -->
+                    <label class="payment-option-card" id="optBkash" onclick="selectPaymentMethod('bKash')">
+                        <input type="radio" name="payment_method" value="bKash">
+                        <div class="payment-info">
+                            <h5>bKash Mobile Banking</h5>
+                            <p>Send Money/Payment to our bKash Merchant number and enter your Transaction ID (TrxID) below.</p>
+                        </div>
+                    </label>
+
+                    <!-- bKash Details Box -->
+                    <div class="bkash-details-box" id="bkashBox">
+                        <span style="font-size: 12px; color: #e60067; font-weight: 700;">bKash Merchant Account Number:</span>
+                        <span class="bkash-number-badge"><i class="fas fa-mobile-alt"></i> 01799-887766</span>
+                        <p style="font-size: 12px; color: #475569; margin-bottom: 10px;">Please transfer the exact fee amount via bKash and paste your 10-digit Transaction ID below:</p>
+                        <input type="text" id="trxIdInput" name="transaction_id" class="form-control" placeholder="Enter bKash TrxID (e.g. TRX987654321)">
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="logout-btn" onclick="closeEnrollModal()">Cancel</button>
+                    <button type="submit" class="btn-action" id="submitEnrollBtn">
+                        <i class="fas fa-check-circle"></i> Confirm & Complete Enrollment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript logic -->
+    <script>
+        function openEnrollModal(courseId, title, price) {
+            document.getElementById('modalCourseId').value = courseId;
+            document.getElementById('modalCourseTitle').textContent = title;
+            document.getElementById('modalCoursePrice').textContent = price;
+            
+            // Reset modal payment state
+            selectPaymentMethod('COD');
+            document.getElementById('trxIdInput').value = '';
+            document.getElementById('enrollModal').style.display = 'flex';
+        }
+
+        function closeEnrollModal() {
+            document.getElementById('enrollModal').style.display = 'none';
+        }
+
+        function selectPaymentMethod(method) {
+            const optCOD = document.getElementById('optCOD');
+            const optBkash = document.getElementById('optBkash');
+            const bkashBox = document.getElementById('bkashBox');
+
+            if (method === 'bKash') {
+                optCOD.classList.remove('selected');
+                optBkash.classList.add('selected');
+                optBkash.querySelector('input[type="radio"]').checked = true;
+                bkashBox.style.display = 'block';
+            } else {
+                optBkash.classList.remove('selected');
+                optCOD.classList.add('selected');
+                optCOD.querySelector('input[type="radio"]').checked = true;
+                bkashBox.style.display = 'none';
+            }
+        }
+
+        function submitEnrollment(e) {
+            e.preventDefault();
+            
+            const btn = document.getElementById('submitEnrollBtn');
+            const courseId = document.getElementById('modalCourseId').value;
+            const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+            const trxId = document.getElementById('trxIdInput').value.trim();
+
+            if (paymentMethod === 'bKash' && !trxId) {
+                alert('Please enter your bKash Transaction ID (TrxID) to complete enrollment.');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing Enrollment...';
+
+            const formData = new FormData();
+            formData.append('action', 'enroll');
+            formData.append('course_id', courseId);
+            formData.append('payment_method', paymentMethod);
+            formData.append('transaction_id', trxId);
+
+            fetch('../../CONTROLLERS/enrollment_controller.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check-circle"></i> Confirm & Complete Enrollment';
+
+                if (data.status === 'success') {
+                    alert(data.message);
+                    closeEnrollModal();
+                    // Refresh dashboard so new enrolled course appears in My Enrolled Courses section
+                    window.location.reload();
+                } else {
+                    alert(data.message || 'Enrollment failed. Please try again.');
+                }
+            })
+            .catch(err => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check-circle"></i> Confirm & Complete Enrollment';
+                console.error('Enrollment Error:', err);
+                alert('An error occurred while processing enrollment. Please try again.');
+            });
+        }
+    </script>
 </body>
 </html>
