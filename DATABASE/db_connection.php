@@ -755,6 +755,62 @@ if (!function_exists('initSqliteSchema')) {
             INSERT OR IGNORE INTO profiles (user_id, first_name, last_name, full_name) VALUES
             (100, 'System', 'Admin', 'System Administrator');
         ");
+
+        // Seed default categories if empty
+        try {
+            $checkCat = $pdo->query("SELECT COUNT(*) FROM categories")->fetchColumn();
+            if ($checkCat == 0) {
+                $pdo->exec("
+                    INSERT OR IGNORE INTO categories (id, name, slug, description) VALUES
+                    (1, 'Web Development', 'web-development', 'HTML, CSS, JS, PHP, PostgreSQL'),
+                    (2, 'Python & AI', 'python-ai', 'Machine Learning & Deep Learning'),
+                    (3, 'Data Science', 'data-science', 'SQL Analytics, PowerBI & Tableau'),
+                    (4, 'Cyber Security', 'cyber-security', 'Ethical Hacking & Defense'),
+                    (5, 'Mobile App', 'mobile-app', 'Flutter & React Native');
+                ");
+            }
+        } catch (Throwable $eCat) {}
+
+        // Seed sample courses if empty
+        try {
+            $checkCourses = $pdo->query("SELECT COUNT(*) FROM courses")->fetchColumn();
+            if ($checkCourses == 0) {
+                $pdo->exec("
+                    INSERT OR IGNORE INTO courses (course_code, title, slug, description, category_id, instructor_id, price, duration, level, thumbnail, is_published) VALUES
+                    ('CSE-401', 'Full Stack Modern Web Development with PHP & MySQL', 'full-stack-web-dev', 'Master HTML5, CSS3, JavaScript, PHP PDO, MySQL database design, and modern responsive glassmorphism UI frameworks.', 1, 100, 4500.00, '12 Weeks', 'Beginner', 'PUBLIC/pic/img.jpg', 1),
+                    ('AI-302', 'Python Programming & Artificial Intelligence Essentials', 'python-programming-ai', 'From core syntax to Machine Learning models, Deep Neural Networks, Pandas, NumPy, and Scikit-Learn data science stack.', 2, 100, 6000.00, '10 Weeks', 'Intermediate', 'PUBLIC/pic/img.jpg', 1),
+                    ('DAT-205', 'Data Analytics & Business Intelligence Dashboarding', 'data-analytics-bi', 'Transform raw relational databases into interactive PowerBI & Tableau dashboards with advanced SQL data analytics.', 3, 100, 3500.00, '8 Weeks', 'Advanced', 'PUBLIC/pic/img.jpg', 1),
+                    ('SEC-101', 'Cyber Security Essentials & Network Defense', 'cyber-security-essentials', 'Ethical hacking methodologies, penetration testing fundamentals, network security architecture, and vulnerability assessment.', 4, 100, 5000.00, '8 Weeks', 'Intermediate', 'PUBLIC/pic/img.jpg', 1);
+                ");
+            }
+        } catch (Throwable $eCrs) {}
+
+        // Ensure default Student account (smeain@gmail.com / 1234567890) exists
+        try {
+            $hash = password_hash('1234567890', PASSWORD_BCRYPT);
+            $checkSmeain = $pdo->prepare("SELECT id FROM users WHERE LOWER(email) = 'smeain@gmail.com'");
+            $checkSmeain->execute();
+            $sRow = $checkSmeain->fetch(PDO::FETCH_ASSOC);
+
+            if (!$sRow) {
+                $pdo->exec("INSERT OR IGNORE INTO users (email, username, password_hash, role, status) VALUES ('smeain@gmail.com', 'smeain', '$hash', 'student', 'ACTIVE')");
+                $getUid = $pdo->prepare("SELECT id FROM users WHERE LOWER(email) = 'smeain@gmail.com'");
+                $getUid->execute();
+                $newUid = $getUid->fetchColumn();
+                if ($newUid) {
+                    $insP = $pdo->prepare("INSERT OR IGNORE INTO profiles (user_id, first_name, last_name, full_name, gender, blood_group, phone_number) VALUES (?, 'Sadman', 'Maein', 'Sadman Maein', 'male', 'A+', '01754393923')");
+                    $insP->execute([$newUid]);
+                }
+            } else {
+                $upd = $pdo->prepare("UPDATE users SET password_hash = ?, role = 'student', status = 'ACTIVE' WHERE id = ?");
+                $upd->execute([$hash, $sRow['id']]);
+            }
+        } catch (Throwable $eStu) {}
+
+        // Seed student_registration legacy entry
+        try {
+            $pdo->exec("INSERT OR IGNORE INTO student_registration (first_name, last_name, contact, gender, blood_group, user_type, email, password) VALUES ('Sadman', 'Maein', '01754393923', 'male', 'A+', 'Student', 'smeain@gmail.com', '" . password_hash('1234567890', PASSWORD_BCRYPT) . "')");
+        } catch (Throwable $eSr) {}
     }
 }
 
