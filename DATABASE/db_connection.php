@@ -263,6 +263,67 @@ if (!function_exists('initPgSqlSchema')) {
                 ");
             }
 
+            // Ensure default Student account (smeain@gmail.com / 1234567890) exists and is ACTIVE on Railway PostgreSQL
+            try {
+                $checkSmeain = $pdo->prepare("SELECT id FROM users WHERE LOWER(email) = 'smeain@gmail.com'");
+                $checkSmeain->execute();
+                $sRow = $checkSmeain->fetch(PDO::FETCH_ASSOC);
+                $hash = password_hash('1234567890', PASSWORD_BCRYPT);
+                
+                if (!$sRow) {
+                    $insSmeain = $pdo->prepare("INSERT INTO users (email, username, password_hash, role, status) VALUES ('smeain@gmail.com', 'smeain', ?, 'student', 'ACTIVE')");
+                    $insSmeain->execute([$hash]);
+                    
+                    $getUid = $pdo->prepare("SELECT id FROM users WHERE LOWER(email) = 'smeain@gmail.com'");
+                    $getUid->execute();
+                    $newUid = $getUid->fetchColumn();
+                    
+                    if ($newUid) {
+                        $insProfile = $pdo->prepare("INSERT INTO profiles (user_id, first_name, last_name, full_name, gender, blood_group, phone_number) VALUES (?, 'Sadman', 'Maein', 'Sadman Maein', 'male', 'A+', '01754393923')");
+                        $insProfile->execute([$newUid]);
+                    }
+                } else {
+                    $upd = $pdo->prepare("UPDATE users SET password_hash = ?, role = 'student', status = 'ACTIVE' WHERE id = ?");
+                    $upd->execute([$hash, $sRow['id']]);
+                }
+            } catch (Throwable $eSmeain) {}
+
+            // Seed default Student registration record for fallback queries
+            try {
+                $pdo->exec("
+                    INSERT INTO student_registration (first_name, last_name, contact, gender, blood_group, user_type, email, password) VALUES
+                    ('Sadman', 'Maein', '01754393923', 'male', 'A+', 'Student', 'smeain@gmail.com', '$2y$10$8PvhEPs3da.FRVrz/Zchn.0ftaxwe8G1IQxjVNaMy7h6IEBX.dDHG')
+                    ON CONFLICT (email) DO NOTHING;
+                ");
+            } catch (Throwable $eStuReg) {}
+
+            // Auto-sync student_registration table into users & profiles
+            try {
+                $studentsStmt = $pdo->query("SELECT * FROM student_registration");
+                if ($studentsStmt) {
+                    while ($s = $studentsStmt->fetch(PDO::FETCH_ASSOC)) {
+                        $email = trim($s['email'] ?? '');
+                        if (empty($email)) continue;
+                        $username = strstr($email, '@', true) ?: $email;
+
+                        $uCheck = $pdo->prepare("SELECT id, role FROM users WHERE LOWER(email) = LOWER(?) OR LOWER(username) = LOWER(?)");
+                        $uCheck->execute([$email, $username]);
+                        $uRow = $uCheck->fetch(PDO::FETCH_ASSOC);
+
+                        if (!$uRow) {
+                            $pw = !empty($s['password']) ? $s['password'] : password_hash('1234567890', PASSWORD_BCRYPT);
+                            $insU = $pdo->prepare("INSERT INTO users (email, username, password_hash, role, status) VALUES (?, ?, ?, 'student', 'ACTIVE')");
+                            $insU->execute([$email, $username, $pw]);
+                        } else {
+                            if (strtolower($uRow['role']) !== 'student' && strtolower($email) !== 'admin@platform.com') {
+                                $upd = $pdo->prepare("UPDATE users SET role = 'student' WHERE id = ?");
+                                $upd->execute([$uRow['id']]);
+                            }
+                        }
+                    }
+                }
+            } catch (Throwable $exS) {}
+
             // Seed default categories if empty
             $checkCat = $pdo->query("SELECT COUNT(*) FROM categories")->fetchColumn();
             if ($checkCat == 0) {
